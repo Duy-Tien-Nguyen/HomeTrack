@@ -1,0 +1,13 @@
+# Ignore tất cả các node modules trong taart cả các thư mục con
+**/node_modules/
+
+# Ignore Cho từng phần cụ thể
+HomeTrack.Api/bin/
+HomeTrack.Api/obj/
+HomeTrack.Api/*.db
+
+
+hometrack-web/.next/
+hometrack-web/.env
+hometrack-mobile/.expo/
+hometrack-mobile/.env

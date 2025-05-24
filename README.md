@@ -178,7 +178,7 @@ Once all components are set up and running:
 *   [ ] Improvement: UI/UX enhancements
 *   [ ] Tech: Add unit and integration tests
 
-See the [open issues](https://github.com/Duy-Tien-Nguyen/Software_Technology/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/Duy-Tien-Nguyen/HomeTrack/issues) for a full list of proposed features (and known issues).
 
 ---
 
@@ -209,7 +209,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 Nguyen Tien Duy / Organization - [@Duy Tien Nguyen](https://www.linkedin.com/in/duy-tien-nguyen/) - duynguyen.das@gmail.com
 
-Project Link: [https://github.com/Duy-Tien-Nguyen/Software_Technology.git](https://github.com/Duy-Tien-Nguyen/Software_Technology.git)
+Project Link: [https://github.com/Duy-Tien-Nguyen/HomeTrack.git](https://github.com/Duy-Tien-Nguyen/HomeTrack.git)
 
 ---
 

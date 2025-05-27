@@ -1,6 +1,9 @@
-public enum Role
+namespace HomeTrack.Domain.Enum
 {
-  Basic,
-  Premium,
-  Admin 
+  public enum Role
+  {
+    Basic,
+    Premium,
+    Admin
+  }
 }

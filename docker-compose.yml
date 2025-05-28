@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    container_name: postgres_db 
+    image: postgres:17-alpine 
+
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: hometrack_user
+      POSTGRES_PASSWORD: strong_password
+      POSTGRES_DB: hometrack_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hometrack-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  hometrack-network:
+    driver: bridge

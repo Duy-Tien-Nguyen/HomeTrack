@@ -23,10 +23,10 @@ namespace HomeTrack.Api.Controllers
         }
 
         [HttpPost("verify")]
-        public async Task<IActionResult> Verify([FromBody] SubmitOTPRequest req)
+        public async Task<VerifyOTPRespone> Verify([FromBody] SubmitOTPRequest req)
         {
             var result = await _regService.VerifyOTP(req.Email, req.Token);
-            return result ? Ok("User activated") : BadRequest("Invalid or expired token");
+            return result ? new VerifyOTPRespone { status = true } : new VerifyOTPRespone { status = false };
         }
 
         [HttpPost("resendOTP")]

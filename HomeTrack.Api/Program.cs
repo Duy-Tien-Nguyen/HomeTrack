@@ -1,60 +1,64 @@
-using Microsoft.Extensions.Logging;
-using DotNetEnv;
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using HomeTrack.Application.AcprojSupport;
+using HomeTrack.Application.AcprojSupport; // Namespace của Validation.cs
+using Microsoft.Extensions.Logging; // Cho ILogger
 
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load(); // Nếu bạn dùng .env
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-builder.Services.AddEndpointsApiExplorer();
-
-
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.ValidateService();
-builder.Services.ConfigureServices();
+builder.Services.AddEndpointsApiExplorer(); // Chỉ gọi một lần
 
 
+// Gọi các phương thức mở rộng tùy chỉnh của bạn
+builder.ValidateService(); // Giả sử đây là nơi AddAuthentication().AddJwtBearer() được cấu hình
+builder.Services.ConfigureServices(); // Đảm bảo bạn biết rõ phương thức này làm gì
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+// Cấu hình DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
-}   
+    // Ném lỗi sớm nếu connection string thiếu
+    throw new InvalidOperationException("Connection string 'DefaultConnection' (or DATABASE_URL if using .env and mapped) is not configured.");
+}
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseNpgsql(connectionString));
 
+
 var app = builder.Build();
+
+// Lấy logger từ app (ASP.NET Core đã cấu hình sẵn)
+var appLogger = app.Services.GetRequiredService<ILogger<Program>>(); // Hoặc app.Logger nếu .NET 7+
+appLogger.LogInformation("Application configured. Starting HTTP request pipeline...");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage(); // Hiển thị lỗi chi tiết khi dev
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "HomeTrack API v1");
         c.RoutePrefix = string.Empty;
     });
+    appLogger.LogInformation("Swagger UI configured for Development environment.");
+}
+else
+{
+    // app.UseExceptionHandler("/Error");
+    // app.UseHsts();
 }
 
-var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder.AddConsole(); // Ghi log ra console
-    builder.SetMinimumLevel(LogLevel.Information); // Mức log tối thiểu
-});
-
-ILogger logger = loggerFactory.CreateLogger<Program>();
-logger.LogInformation("App is starting...");
+// app.UseHttpsRedirection(); // Bật nếu bạn dùng HTTPS
 
 app.UseRouting();
 
-app.UseAuthorization();
+app.UseAuthentication(); // Middleware xác thực
+app.UseAuthorization();  // Middleware ủy quyền
+
 app.MapControllers();
 
+appLogger.LogInformation("Application is starting...");
 app.Run();
-

@@ -26,4 +26,26 @@ namespace HomeTrack.Api.Request
     public string? LastName { get; set; }
     public string Role { get; set; }
   }
+
+  public class AccessTokenString
+  {
+    public string accessToken { get; set; }
+  }
+
+  public class VerifyOTPRespone
+  {
+    public bool status { get; set; }
+  }
+
+  public class ResetPasswordRequest
+  {
+    public string newPassword { get; set; }
+  }
+
+  public class ForgetPasswordRequest
+  {
+    public string email{ get; set; }
+    public string token{ get; set; }
+    public string newPassword { get; set; }
+  }
 }

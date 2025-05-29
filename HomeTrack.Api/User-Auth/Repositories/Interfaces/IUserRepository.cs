@@ -7,7 +7,6 @@ namespace HomeTrack.Application.Interface
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByIdAsync(int id);
         Task ActivateUserAsync(int id);
-        Task Login(string email, string password);
         Task SaveChangesAsync();
     }
 }

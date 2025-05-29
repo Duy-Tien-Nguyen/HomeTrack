@@ -24,16 +24,42 @@ namespace HomeTrack.Application.AcprojSupport
       services.AddControllers();
       services.AddEndpointsApiExplorer();
       services.AddSwaggerGen(c =>
-      {
-        c.SwaggerDoc("v1", new OpenApiInfo
-        {
-          Title = "HomeTrack API",
-          Version = "v1",
-          Description = "API for user registration and OTP verification"
-        });
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "HomeTrack API",
+        Version = "v1",
+        Description = "API for user registration and OTP verification"
+    });
 
-        c.EnableAnnotations();
-      });
+    // ✅ Thêm phần cấu hình bảo mật JWT
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập token dạng: Bearer {token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
     }
   }
+  
 }

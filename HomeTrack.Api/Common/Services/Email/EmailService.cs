@@ -33,7 +33,13 @@ namespace HomeTrack.Application.Services
                     return;
                 }
 
-                int expirationMinutes = int.Parse(_config["OTP_EXPIRER_TIME"] ?? "10");
+                string otpExpiryString = _config.GetValue<string>("OtpSettings:ExpireTimeInMinutes");
+                int expirationMinutes;
+
+                if (!int.TryParse(otpExpiryString, out expirationMinutes))
+                {
+                    expirationMinutes = 10; // Giá trị mặc định nếu không có trong config hoặc không parse được
+                }
                 string body = await File.ReadAllTextAsync(templateFile);
                 body = body.Replace("{{OTP}}", token)
                            .Replace("{{ExpirationMinutes}}", expirationMinutes.ToString());

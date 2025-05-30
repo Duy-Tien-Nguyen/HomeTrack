@@ -20,7 +20,6 @@ builder.Services.ConfigureServices(); // Đảm bảo bạn biết rõ phương 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    // Ném lỗi sớm nếu connection string thiếu
     throw new InvalidOperationException("Connection string 'DefaultConnection' (or DATABASE_URL if using .env and mapped) is not configured.");
 }
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
@@ -29,14 +28,14 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 var app = builder.Build();
 
-// Lấy logger từ app (ASP.NET Core đã cấu hình sẵn)
+
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>(); // Hoặc app.Logger nếu .NET 7+
 appLogger.LogInformation("Application configured. Starting HTTP request pipeline...");
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); // Hiển thị lỗi chi tiết khi dev
+    app.UseDeveloperExceptionPage(); 
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {

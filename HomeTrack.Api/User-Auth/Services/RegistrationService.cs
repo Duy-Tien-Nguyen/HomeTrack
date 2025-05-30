@@ -50,7 +50,7 @@ namespace HomeTrack.Application.Services
                 FirstName = firstName,
                 LastName = lastName,
                 Role = Role.Basic,
-                Status = Status.Pending,
+                Status = UserStatus.Pending,
             };
             user.Password = _passwordHasher.HashPassword(user, password);
 

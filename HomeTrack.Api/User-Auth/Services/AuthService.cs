@@ -35,7 +35,7 @@ namespace HomeTrack.Application.Services
         return new LoginResponseDto { IsSuccess = false, ErrorMessage = "Email hoặc mật khẩu không đúng." };
       }
 
-      if (user.Status != Domain.Enum.Status.Active)
+      if (user.Status != Domain.Enum.UserStatus.Active)
       {
         return new LoginResponseDto { IsSuccess = false, ErrorMessage = "Tài khoản của bạn chưa được tạo thành công hoặc đã bị khóa." };
       }
@@ -108,7 +108,7 @@ namespace HomeTrack.Application.Services
       }
     }
 
-    public Task<bool> ForgetPassword(string token, string email, string newPassword)
+    public Task<bool> ForgotPassword(string token, string email, string newPassword)
     {
       var userTask = _userRepo.GetByEmailAsync(email);
       return userTask.ContinueWith(async t =>

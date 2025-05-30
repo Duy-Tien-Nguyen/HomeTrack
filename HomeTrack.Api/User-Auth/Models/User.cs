@@ -12,7 +12,7 @@ namespace HomeTrack.Domain
     public string? LastName { get; set; }
     public required Role Role { get; set; }
     public string? RefreshToken { get; set; }
-    public Status Status { get; set; }
+    public UserStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -21,7 +21,7 @@ namespace HomeTrack.Domain
     {
       CreatedAt = DateTime.UtcNow;
       UpdatedAt = DateTime.UtcNow;
-      Status = Status.Pending; // Default status
+      Status = UserStatus.Pending; // Default status
       Role = Role.Basic; // Default role
     }
     public bool ValidatePassword(string password)
@@ -32,7 +32,7 @@ namespace HomeTrack.Domain
     }
     public void Active()
     {
-      Status = Status.Active;
+      Status = UserStatus.Active;
       UpdatedAt = DateTime.UtcNow;
     }
   }

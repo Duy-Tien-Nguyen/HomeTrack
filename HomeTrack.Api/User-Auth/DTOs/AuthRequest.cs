@@ -44,8 +44,9 @@ namespace HomeTrack.Api.Request
 
   public class ForgetPasswordRequest
   {
-    public string email{ get; set; }
-    public string token{ get; set; }
+    public string email { get; set; }
+    public string token { get; set; }
     public string newPassword { get; set; }
+    public string repeatPassword{ get; set; }
   }
 }

@@ -25,7 +25,7 @@ namespace HomeTrack.Infrastructure.Repositories
             var user = await GetByIdAsync(id);
             if (user != null)
             {
-                user.Status = Domain.Enum.Status.Active;
+                user.Status = Domain.Enum.UserStatus.Active;
             }
         }
 

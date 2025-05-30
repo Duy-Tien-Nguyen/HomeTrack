@@ -1,5 +1,5 @@
 namespace HomeTrack.Domain.Enum;
-public enum Status
+public enum UserStatus
 {
     Active,
     Banned,

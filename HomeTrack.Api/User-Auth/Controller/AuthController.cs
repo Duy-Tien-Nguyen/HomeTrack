@@ -93,10 +93,14 @@ namespace HomeTrack.Api.Controllers
       return result;
     }
 
-    [HttpPatch("forget_password")]
+    [HttpPatch("forgot_password")]
     public async Task<bool> ForgetPassword([FromBody] ForgetPasswordRequest req)
     {
-      bool result = await _authService.ForgetPassword(req.token, req.email, req.newPassword);
+      if (req.newPassword != req.repeatPassword)
+      {
+        throw new InvalidOperationException("Mật khẩu lặp lại không khớp.");
+      }
+      bool result = await _authService.ForgotPassword(req.token, req.email, req.newPassword);
       if (result)
       {
         return true;

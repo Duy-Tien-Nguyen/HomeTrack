@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using HomeTrack.Infrastructure.Jwt;
 using HomeTrack.Api.Request;
+using HomeTrack.Application.Services;
 
 namespace HomeTrack.Application.AcprojSupport
 {
@@ -23,9 +24,11 @@ namespace HomeTrack.Application.AcprojSupport
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();
 
-            // 2. JWT Settings
+            // 2. JWT, OTP Settings
             builder.Services.Configure<JwtSetting>(builder.Configuration.GetSection("Jwt"));
             var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtSetting>();
+
+            builder.Services.Configure<EmailService>(builder.Configuration.GetSection("OtpSettings"));
 
             if (string.IsNullOrEmpty(jwtConfig?.SecretKey))
             {

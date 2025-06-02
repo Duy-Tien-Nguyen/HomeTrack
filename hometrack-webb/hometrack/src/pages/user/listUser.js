@@ -1,0 +1,37 @@
+export const listUsers = [
+  {
+    itemName: "NA",
+    name: "Nguyễn Văn A",
+    email: "nguyenvana@example.com",
+    status: "Hoạt động",
+    service: "trả phí",
+    colorbacgroudStatus: "#dcfcd7",
+    colorStatus: "#166534",
+    colorbacgroudService: "#eff6ff",
+    colorService: "#1e40af",
+  },
+  {
+    itemName: "TB",
+
+    name: "Trần Thị B",
+    email: "tranthib@example.com",
+    status: "khóa",
+    service: "miễn phí",
+    colorbacgroudStatus: "#fee2e2",
+    colorStatus: "#991b1b",
+    colorbacgroudService: "#f1f5f9",
+    colorService: "#475569",
+  },
+  {
+    itemName:'LC',
+
+    name: "Lê Văn C",
+    email: "levanc@example.com",
+    status: "Hoạt động",
+    service: "trả phí",
+    colorbacgroudStatus: "#dcfcd7",
+    colorStatus: "#166534",
+    colorbacgroudService: "#eff6ff",
+    colorService: "#1e40af",
+  },
+];

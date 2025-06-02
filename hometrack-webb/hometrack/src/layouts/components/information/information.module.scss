@@ -1,0 +1,24 @@
+.wrapper{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+
+}
+
+.content{
+    display: flex;
+    place-items: center;
+    background-color: #1553c5;
+    color: #fff;
+    border-radius: 50px;
+}
+.user{
+    height: 50px;
+    width: 50px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    font-size: 2rem;
+    font-weight: 400;
+}

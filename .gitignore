@@ -3,6 +3,7 @@
 
 #Ignore tất cả các .env
 **/.env
+**/appsettings.json
 
 # Ignore Cho từng phần cụ thể
 HomeTrack.Api/bin/

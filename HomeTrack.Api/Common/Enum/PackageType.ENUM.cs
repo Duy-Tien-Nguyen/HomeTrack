@@ -1,9 +1,8 @@
 namespace HomeTrack.Domain.Enum
 {
-  public enum Role
+  public enum PackageType
   {
     Basic,
-    Premium,
-    Admin
+    Premium
   }
 }

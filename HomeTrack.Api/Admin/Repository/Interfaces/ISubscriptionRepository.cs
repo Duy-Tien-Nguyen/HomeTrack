@@ -10,6 +10,7 @@ namespace HomeTrack.Application.Interface
     Task<Subscription?> GetActiveSubscriptionByUserIdAsync(int userId, int packageId); // Để kiểm tra user đã có gói active chưa
     Task<Subscription> AddAsync(Subscription subscription);
     Task UpdateAsync(Subscription subscription);
+    Task<bool> DeleteAllByUser(int userId);
     Task<bool> ExistsAsync(int id);
   }
 }

@@ -10,6 +10,7 @@ namespace HomeTrack.Api.Request
 
     public int PackageId { get; set; }
     public string PackageName { get; set; } = string.Empty;
+    public decimal PackagePrice { get; set; }
 
     public SubscriptionStatus Status { get; set; }
     public string StatusText => Status.ToString();

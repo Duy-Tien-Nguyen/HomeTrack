@@ -49,5 +49,9 @@ namespace HomeTrack.Infrastructure.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<List<User>> GetAllAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
     }
 }

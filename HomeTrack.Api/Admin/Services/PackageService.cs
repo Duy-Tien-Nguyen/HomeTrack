@@ -56,6 +56,7 @@ namespace HomeTrack.Application.Services
         {
           Name = packageDto.Name,
           Description = packageDto.Description,
+          DurationDays = packageDto.DurationDays,
           Price = packageDto.Price,
           isActive = packageDto.IsActive
         };
@@ -82,6 +83,7 @@ namespace HomeTrack.Application.Services
 
         package.Name = packageDto.Name;
         package.Description = packageDto.Description;
+        package.DurationDays = packageDto.DurationDays;
         package.Price = packageDto.Price;
         package.isActive = packageDto.IsActive;
         package.UpdateAt = DateTime.UtcNow;

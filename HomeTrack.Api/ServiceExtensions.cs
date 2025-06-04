@@ -20,7 +20,12 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPackageRepository, PackageRepository>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<ISystemSettingRepository, SystemSettingRepository>();
+            services.AddScoped<IPackageService, PackageService>();
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<ISystemSettingService, SystemSettingService>();
 
 
             services.AddControllers();

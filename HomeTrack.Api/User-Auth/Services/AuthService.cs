@@ -90,7 +90,7 @@ namespace HomeTrack.Application.Services
       {
         throw new InvalidOperationException("Người dùng không tồn tại.");
       }
-      
+
     }
 
     public async Task<bool> ResetPassword(int userId, string newPassword)
@@ -133,6 +133,26 @@ namespace HomeTrack.Application.Services
           throw new InvalidOperationException("Người dùng không tồn tại.");
         }
       }).Unwrap();
+    }
+    
+    public async Task<UserDto> GetProfile(int userId)
+    {
+      var user = await _userRepo.GetByIdAsync(userId);
+      if (user != null)
+      {
+        return new UserDto
+        {
+          Id = user.Id,
+          Email = user.Email,
+          FirstName = user.FirstName,
+          LastName = user.LastName,
+          Role = user.Role.ToString()
+        };
+      }
+      else
+      {
+        throw new InvalidOperationException("Người dùng không tồn tại.");
+      }
     }
   }
 }

@@ -1,13 +1,13 @@
-using HomeTrack.Domain;
 using HomeTrack.Api.Request;
-using HomeTrack.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using HomeTrack.Application.Interface;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HomeTrack.Api.Controllers
 {
   [ApiController]
   [Route("api/packages")]
+  [Authorize(Roles = "Admin")]
   public class PackageController : ControllerBase
   {
     private readonly IPackageService _packageService;
@@ -20,77 +20,107 @@ namespace HomeTrack.Api.Controllers
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPackageById(int id)
     {
-      var package = await _packageService.GetByIdAsync(id);
-      if (package == null)
+      try
       {
-        return NotFound();
+        var package = await _packageService.GetByIdAsync(id);
+        if (package == null)
+          return NotFound("Không tìm thấy gói.");
+        return Ok(package);
       }
-      return Ok(package);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi lấy gói: {ex.Message}");
+      }
     }
 
     [HttpGet("all")]
     public async Task<IActionResult> GetAllPackages()
     {
-      var packages = await _packageService.GetAllAsync();
-      if (packages == null || !packages.Any())
+      try
       {
-        return NotFound();
+        var packages = await _packageService.GetAllAsync();
+        if (packages == null || !packages.Any())
+          return NotFound("Không có gói nào được tìm thấy.");
+        return Ok(packages);
       }
-      return Ok(packages);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi lấy danh sách gói: {ex.Message}");
+      }
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> CreatePackage([FromBody] CreatePackageDto packageDto)
     {
-      if (packageDto == null)
+      try
       {
-        return BadRequest("Package data is required.");
-      }
+        if (packageDto == null)
+          return BadRequest("Gói dữ liệu là bắt buộc.");
 
-      var package = await _packageService.AddAsync(packageDto);
-      if (package == null)
-      {
-        return StatusCode(500, "An error occurred while creating the package.");
+        var package = await _packageService.AddAsync(packageDto);
+        if (package == null)
+          return StatusCode(500, "Lỗi xảy ra khi tạo gói mới.");
+
+        return CreatedAtAction(nameof(GetPackageById), new { id = package.Id }, package);
       }
-      return CreatedAtAction(nameof(GetPackageById), new { id = package.Id }, package);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi tạo gói: {ex.Message}");
+      }
     }
 
     [HttpPut("update")]
     public async Task<IActionResult> UpdatePackage(int id, [FromBody] UpdatePackageDto packageDto)
     {
-      if (packageDto == null)
+      try
       {
-        return BadRequest("Package data is required.");
-      }
+        if (packageDto == null)
+          return BadRequest("Gói dữ liệu là bắt buộc.");
 
-      var updated = await _packageService.UpdateAsync(id, packageDto);
-      if (!updated)
-      {
-        return NotFound();
+        var updated = await _packageService.UpdateAsync(id, packageDto);
+        if (!updated)
+          return NotFound("Gói không tồn tại hoặc không thể cập nhật.");
+
+        return Ok("Gói đã được cập nhật thành công.");
       }
-      return NoContent();
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi cập nhật gói: {ex.Message}");
+      }
     }
 
     [HttpDelete("delete")]
     public async Task<IActionResult> DeletePackage(int id)
     {
-      var deleted = await _packageService.DeleteAsync(id);
-      if (!deleted)
+      try
       {
-        return NotFound();
+        var deleted = await _packageService.DeleteAsync(id);
+        if (!deleted)
+          return NotFound("Gói không tồn tại hoặc không thể xóa.");
+
+        return NoContent();
       }
-      return NoContent();
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi xóa gói: {ex.Message}");
+      }
     }
 
     [HttpPost("toggle-status")]
     public async Task<IActionResult> TogglePackageStatus(int id)
     {
-      var toggled = await _packageService.TogglePackageStatusAsync(id);
-      if (!toggled)
+      try
       {
-        return NotFound();
+        var toggled = await _packageService.TogglePackageStatusAsync(id);
+        if (!toggled)
+          return NotFound("Gói không tồn tại hoặc không thể thay đổi trạng thái.");
+
+        return Ok("Trạng thái gói đã được thay đổi thành công.");
       }
-      return NoContent();
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi thay đổi trạng thái gói: {ex.Message}");
+      }
     }
   }
 }

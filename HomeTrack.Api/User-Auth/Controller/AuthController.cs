@@ -8,7 +8,6 @@ namespace HomeTrack.Api.Controllers
 {
   [ApiController]
   [Route("api/auth")]
-
   public class AuthController : ControllerBase
   {
     private readonly IAuthService _authService;
@@ -21,9 +20,14 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpPost("login")]
-    public async Task<LoginResponseDto> LoginAsync([FromBody] LoginRequest req)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest req)
     {
-      return await _authService.LoginAsync(req);
+      var result = await _authService.LoginAsync(req);
+      if (result == null)
+      {
+        return Unauthorized(new { message = "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin." });
+      }
+      return Ok(result);
     }
 
     [Authorize]
@@ -32,83 +36,104 @@ namespace HomeTrack.Api.Controllers
     {
       var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-      if (string.IsNullOrEmpty(userIdString))
+      if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
       {
-        _logger.LogWarning("Logout attempt failed: UserId claim (NameIdentifier) not found in token.");
-
+        _logger.LogWarning("Logout failed: Invalid or missing user ID in token.");
         return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
       }
 
-      // Chuyển đổi userIdString sang int
-      if (int.TryParse(userIdString, out int userId))
+      try
       {
-        try
+        bool success = await _authService.LogoutAsync(userId);
+        if (success)
         {
-          bool logoutSuccess = await _authService.LogoutAsync(userId);
-          if (logoutSuccess)
-          {
-            _logger.LogInformation("User {UserId} logged out successfully.", userId);
-            return Ok(new { message = "Đăng xuất thành công." });
-          }
-          else
-          {
-
-            _logger.LogWarning("Logout process for UserId {UserId} did not complete successfully (as reported by AuthService).", userId);
-            return Ok(new { message = "Yêu cầu đăng xuất đã được xử lý." });
-          }
+          _logger.LogInformation("User {UserId} logged out successfully.", userId);
+          return Ok(new { message = "Đăng xuất thành công." });
         }
-        catch (Exception ex)
+        else
         {
-          _logger.LogError(ex, "An error occurred during logout for UserId {UserIdString}.", userIdString);
-          return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã có lỗi xảy ra trong quá trình đăng xuất." });
+          _logger.LogWarning("Logout for user {UserId} did not complete successfully.", userId);
+          return Ok(new { message = "Yêu cầu đăng xuất đã được xử lý." });
         }
       }
-      else
+      catch (Exception ex)
       {
-        _logger.LogError("Logout attempt failed: UserId claim (NameIdentifier) '{UserIdString}' is not a valid integer.", userIdString);
-        return BadRequest(new { message = "Định dạng ID người dùng không hợp lệ trong token." });
+        _logger.LogError(ex, "Error during logout for UserId {UserId}.", userId);
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi đăng xuất." });
       }
     }
 
     [Authorize]
     [HttpGet("access_token")]
-    public Task<AccessTokenString> GetAccessToken()
+    public async Task<IActionResult> GetAccessToken()
     {
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-      var email = User.FindFirst(ClaimTypes.Email)?.Value;
-      var role = User.FindFirst(ClaimTypes.Role)?.Value;
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var email = User.FindFirstValue(ClaimTypes.Email);
+      var role = User.FindFirstValue(ClaimTypes.Role);
 
-      return _authService.GetAccessToken(userId, email, role);
+      var token = await _authService.GetAccessToken(userId, email, role);
+      if (token == null)
+      {
+        return Unauthorized(new { message = "Không thể tạo access token." });
+      }
+
+      return Ok(token);
     }
 
     [Authorize]
     [HttpPatch("reset_password")]
-    public async Task<bool> ResetPassword([FromBody] ResetPasswordRequest req)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest req)
     {
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-      int.TryParse(userId, out int userIdInt);
+      if (!int.TryParse(userIdStr, out int userId))
+      {
+        return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
+      }
 
-      bool result = await _authService.ResetPassword(userIdInt, req.newPassword);
-      return result;
+      var success = await _authService.ResetPassword(userId, req.newPassword);
+      if (!success)
+      {
+        return BadRequest(new { message = "Đổi mật khẩu thất bại." });
+      }
+
+      return Ok(new { message = "Đổi mật khẩu thành công." });
     }
 
     [HttpPatch("forgot_password")]
-    public async Task<bool> ForgetPassword([FromBody] ForgetPasswordRequest req)
+    public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest req)
     {
       if (req.newPassword != req.repeatPassword)
       {
-        throw new InvalidOperationException("Mật khẩu lặp lại không khớp.");
+        return BadRequest(new { message = "Mật khẩu lặp lại không khớp." });
       }
-      bool result = await _authService.ForgotPassword(req.token, req.email, req.newPassword);
-      if (result)
+
+      var result = await _authService.ForgotPassword(req.token, req.email, req.newPassword);
+      if (!result)
       {
-        return true;
+        return BadRequest(new { message = "Đổi mật khẩu thất bại." });
       }
-      else
+
+      return Ok(new { message = "Đổi mật khẩu thành công." });
+    }
+
+    [Authorize]
+    [HttpGet("myprofile")]
+    public async Task<IActionResult> GetMyProfile()
+    {
+      var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (!int.TryParse(userIdStr, out int userId))
       {
-        throw new InvalidOperationException("Đổi mật khẩu thất bại.");
+        return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
       }
+
+      var user = await _authService.GetProfile(userId);
+      if (user == null)
+      {
+        return NotFound(new { message = "Không tìm thấy người dùng." });
+      }
+
+      return Ok(user);
     }
   }
 }

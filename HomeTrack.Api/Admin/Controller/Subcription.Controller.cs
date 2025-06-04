@@ -28,67 +28,157 @@ namespace HomeTrack.Api.Controllers
     [Authorize]
     public async Task<IActionResult> GetSubscriptionById([FromBody] GetSubscriptionByIdReq req)
     {
-      var subscription = await _subscriptionService.GetByIdAsync(req.subcriptionId);
-      if (subscription == null)
+      try
       {
-        return NotFound();
+        var subscription = await _subscriptionService.GetByIdAsync(req.subcriptionId);
+        if (subscription == null)
+          return NotFound("Không tìm thấy gói đăng ký");
+        return Ok(subscription);
       }
-      return Ok(subscription);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi lấy thông tin: {ex.Message}");
+      }
     }
 
     [HttpGet("all")]
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllSubscriptions()
     {
-      var subscriptions = await _subscriptionService.GetAllAsync();
-      if (subscriptions == null || !subscriptions.Any())
+      try
       {
-        return NotFound();
+        var subscriptions = await _subscriptionService.GetAllAsync();
+        if (subscriptions == null || !subscriptions.Any())
+          return NotFound("Không có gói đăng ký nào");
+        return Ok(subscriptions);
       }
-      return Ok(subscriptions);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi lấy danh sách: {ex.Message}");
+      }
     }
 
     [HttpPost("regis-subcription")]
     [Authorize]
-    public async Task<IActionResult> RegisAsync([FromBody] CreateSubscriptionDto createSubscriptionDto)
+    public async Task<IActionResult> RegisAsync([FromBody] CreateSubscriptionDto dto)
     {
-      var subscription = await _subscriptionService.AddAsync(createSubscriptionDto);
-      if (subscription == null)
+      try
       {
-        return StatusCode(500, "Lỗi xuất hiện khi đăng ký gói.");
+        var subscription = await _subscriptionService.AddAsync(dto);
+        if (subscription == null)
+          return StatusCode(500, "Lỗi xuất hiện khi đăng ký gói.");
+        return Ok(subscription);
       }
-      return Ok(subscription);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi đăng ký: {ex.Message}");
+      }
+    }
+
+    [HttpGet("user-by-admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetByUserId([FromQuery] int userId)
+    {
+      try
+      {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+          return NotFound("Người dùng không tồn tại");
+
+        var subscriptions = await _subscriptionService.GetByUserIdAsync(userId);
+        if (subscriptions == null || !subscriptions.Any())
+          return NotFound("Không có gói đăng ký nào cho người dùng này");
+
+        return Ok(subscriptions);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi xảy ra: {ex.Message}");
+      }
+    }
+
+    [HttpGet("by-myself")]
+    [Authorize]
+    public async Task<IActionResult> GetByMyself()
+    {
+      try
+      {
+        var userId = GetCurrentUserId();
+        if (userId == null)
+          return Unauthorized("ID người dùng không hợp lệ");
+
+        var subscriptions = await _subscriptionService.GetByUserIdAsync(userId.Value);
+        if (subscriptions == null || !subscriptions.Any())
+          return NotFound("Không có gói đăng ký nào");
+
+        return Ok(subscriptions);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi xảy ra: {ex.Message}");
+      }
     }
 
     [HttpPost("cancel-subs")]
     [Authorize]
     public async Task<IActionResult> CancelSubs([FromBody] GetSubscriptionByIdReq req)
     {
-      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-      if (!int.TryParse(userIdClaim, out var userId))
-        return Unauthorized("ID người dùng không hợp lệ");
-
-      var result = await _subscriptionService.CancelAsync(req.subcriptionId, userId);
-
-      if (result == null)
+      try
       {
-        return StatusCode(500, "Hủy gói thất bại");
+        var userId = GetCurrentUserId();
+        if (userId == null)
+          return Unauthorized("ID người dùng không hợp lệ");
+
+        var result = await _subscriptionService.CancelAsync(req.subcriptionId, userId.Value);
+        if (result == null)
+          return StatusCode(500, "Hủy gói thất bại");
+
+        return Ok(result);
       }
-      return Ok(result);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi hủy gói: {ex.Message}");
+      }
     }
 
     [HttpPost("subs-expire")]
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ExpireAsync([FromBody] ExpireSubscriptionReq req)
     {
-      var result = await _subscriptionService.ExpireAsync(req.subscriptionId, req.userId);
-
-      if (result == null)
+      try
       {
-        return StatusCode(500, "Hủy gói thất bại");
+        var result = await _subscriptionService.ExpireAsync(req.subscriptionId, req.userId);
+        if (result == null)
+          return StatusCode(500, "Hủy gói thất bại");
+        return Ok(result);
       }
-      return Ok(result);
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi hủy gói: {ex.Message}");
+      }
+    }
+
+    [HttpPost("subs-active")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ActivateAsync([FromBody] ExpireSubscriptionReq req)
+    {
+      try
+      {
+        var result = await _subscriptionService.ActivateAsync(req.subscriptionId, req.userId);
+        if (!result)
+          return StatusCode(500, "Kích hoạt gói thất bại");
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(500, $"Lỗi khi kích hoạt gói: {ex.Message}");
+      }
+    }
+
+    private int? GetCurrentUserId()
+    {
+      var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      return int.TryParse(userIdClaim, out var userId) ? userId : (int?)null;
     }
   }
 }

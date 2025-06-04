@@ -7,7 +7,7 @@ namespace HomeTrack.Api.Request
     public string? Description { get; set; }
     public decimal Price { get; set; }
     public int DurationDays { get; set; }
-    public bool IsActive { get; set; } // Đổi tên từ isActive cho C# convention
+    public bool IsActive { get; set; } = true; // Mặc định là active
     public DateTime CreateAt { get; set; }
     public DateTime UpdateAt { get; set; }
   }

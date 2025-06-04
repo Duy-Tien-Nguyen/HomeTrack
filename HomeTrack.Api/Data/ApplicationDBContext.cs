@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Domain;
 using HomeTrack.Domain.Account;
+using System.Reflection.Emit;
 
 namespace HomeTrack.Infrastructure.Data
 {
@@ -14,6 +15,7 @@ namespace HomeTrack.Infrastructure.Data
     public DbSet<ConfirmationToken> ConfirmationTokens { get; set; }
     public DbSet<Package> Packages { get; set; }
     public DbSet<Subscription> Subscriptions{ get; set; }
+    public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -113,6 +115,29 @@ namespace HomeTrack.Infrastructure.Data
         entity.HasIndex(e => e.UserId);
         entity.HasIndex(s => s.EndsAt);
       });
+
+      modelBuilder.Entity<SystemSetting>(entity =>
+      {
+        entity.ToTable("SystemSettings");
+        entity.HasKey(e => e.Id);
+        entity.HasIndex(e => e.SettingKey).IsUnique();
+      });
+      modelBuilder.Entity<SystemSetting>().HasData(
+        new SystemSetting
+        {
+          Id = 1, // Đặt Id cố định để dễ cập nhật
+          SettingKey = "MaxBasicItemLimit",
+          SettingValue = 50, // Giá trị mặc định
+          updateAt = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+        },
+        new SystemSetting
+        {
+          Id = 2,
+          SettingKey = "MaxPremiumItemLimit",
+          SettingValue = 500,
+          updateAt = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+        }
+      );
     }
   }
 }

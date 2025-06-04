@@ -19,6 +19,8 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IPackageRepository, PackageRepository>();
+            services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
 
             services.AddControllers();

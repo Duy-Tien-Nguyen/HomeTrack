@@ -6,12 +6,13 @@ namespace HomeTrack.Api.Request
   {
     public int Id { get; set; }
     public int UserId { get; set; }
-    public UserDto? User { get; set; } // Optional: include user details
+    public string UserName { get; set; } = string.Empty;
 
     public int PackageId { get; set; }
-    public PackageDto? Package { get; set; } // Optional: include package details
+    public string PackageName { get; set; } = string.Empty;
 
     public SubscriptionStatus Status { get; set; }
+    public string StatusText => Status.ToString();
     public DateTime StartsAt { get; set; }
     public DateTime EndsAt { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -28,4 +29,16 @@ namespace HomeTrack.Api.Request
   {
     public required SubscriptionStatus Status { get; set; }
   }
+
+  public class GetSubscriptionByIdReq
+  {
+    public required int subcriptionId { get; set; }
+  }
+
+  public class ExpireSubscriptionReq
+  {
+    public required int subscriptionId { get; set; }
+    public required int userId{ get; set; }
+  }
+
 }

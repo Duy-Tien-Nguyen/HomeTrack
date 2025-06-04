@@ -6,6 +6,7 @@ using System.Text;
 using HomeTrack.Infrastructure.Jwt;
 using HomeTrack.Api.Request;
 using HomeTrack.Application.Services;
+using System.Security.Claims;
 
 namespace HomeTrack.Application.AcprojSupport
 {
@@ -48,21 +49,22 @@ namespace HomeTrack.Application.AcprojSupport
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // chỉ nên bật false khi dev
+                options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
                 Console.WriteLine($"DEBUG in AddJwtBearer - Using SecretKey: '{jwtConfig.SecretKey}' for IssuerSigningKey"); 
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false, // Nếu bạn không dùng issuer
-                    ValidateAudience = false, // Nếu bạn không dùng audience
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
 
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtConfig.SecretKey)
                     ),
-                    ClockSkew = TimeSpan.Zero // bỏ thời gian trễ mặc định 5 phút
+                    ClockSkew = TimeSpan.Zero, // bỏ thời gian trễ mặc định 5 phút
+                    RoleClaimType= ClaimTypes.Role
                 };
             });
         }

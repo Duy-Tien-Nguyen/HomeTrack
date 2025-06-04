@@ -3,6 +3,7 @@ using System;
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HomeTrack.Api.Data.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250602165402_SeedSystemSettings")]
+    partial class SeedSystemSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,14 +220,14 @@ namespace HomeTrack.Api.Data.Migrations
                             Id = 1,
                             SettingKey = "MaxBasicItemLimit",
                             SettingValue = 50,
-                            updateAt = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            updateAt = new DateTime(2025, 6, 2, 16, 54, 2, 306, DateTimeKind.Utc).AddTicks(1797)
                         },
                         new
                         {
                             Id = 2,
                             SettingKey = "MaxPremiumItemLimit",
                             SettingValue = 500,
-                            updateAt = new DateTime(2025, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            updateAt = new DateTime(2025, 6, 2, 16, 54, 2, 306, DateTimeKind.Utc).AddTicks(1803)
                         });
                 });
 

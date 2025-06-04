@@ -33,19 +33,19 @@ namespace HomeTrack.Application.Services
                     return;
                 }
 
-                string otpExpiryString = _config.GetValue<string>("OtpSettings:ExpireTimeInMinutes");
+                string otpExpiryString = _config.GetValue<string>("OtpSettings:ExpireTimeInMinutes") ?? "10";
                 int expirationMinutes;
 
                 if (!int.TryParse(otpExpiryString, out expirationMinutes))
                 {
-                    expirationMinutes = 10; // Giá trị mặc định nếu không có trong config hoặc không parse được
+                    expirationMinutes = 10;
                 }
                 string body = await File.ReadAllTextAsync(templateFile);
                 body = body.Replace("{{OTP}}", token)
                            .Replace("{{ExpirationMinutes}}", expirationMinutes.ToString());
 
                 var message = new MimeMessage();
-                message.From.Add(MailboxAddress.Parse(_config["EMAIL_FROM"] ?? "noreply@yourdomain.com"));
+                message.From.Add(MailboxAddress.Parse(_config["EmailSettings:From"] ?? throw new InvalidOperationException("EmailSettings:From is missing in configuration.")));
                 message.To.Add(MailboxAddress.Parse(email));
                 message.Subject = "Your HomeTrack OTP Code";
 
@@ -56,10 +56,10 @@ namespace HomeTrack.Application.Services
 
                 using var client = new SmtpClient();
 
-                string smtpHost = _config["EMAIL_SMTP_HOST"];
-                int smtpPort = int.Parse(_config["EMAIL_SMTP_PORT"] ?? "587");
-                string smtpUser = _config["EMAIL_USERNAME"];
-                string smtpPass = _config["EMAIL_PASSWORD"];
+                string smtpHost = _config["EmailSettings:SmtpHost"] ?? throw new InvalidOperationException("EmailSettings:SmtpHost is missing in configuration.");
+                int smtpPort = int.Parse(_config["EmailSettings:SmtpPort"] ?? "587");
+                string smtpUser = _config["EmailSettings:Username"] ?? throw new InvalidOperationException("EmailSettings:Username is missing in configuration.");
+                string smtpPass = _config["EmailSettings:Password"] ?? throw new InvalidOperationException("EmailSettings:Password is missing in configuration.");
 
                 await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.Auto);
                 await client.AuthenticateAsync(smtpUser, smtpPass);

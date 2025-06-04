@@ -1,6 +1,9 @@
-using HomeTrack.Domain;
+using HomeTrack.Application.Interface;
+// using HomeTrack.Domain; // <-- Xóa hoặc comment
+using HomeTrack.Api.Models.Entities; // <-- Đảm bảo dòng này
+using Microsoft.EntityFrameworkCore;
 
-namespace HomeTrack.Application.Interface
+namespace HomeTrack.Infrastructure.Repositories
 {
   public interface IPackageRepository
   {
@@ -8,7 +11,7 @@ namespace HomeTrack.Application.Interface
     Task<IEnumerable<Package>> GetAllAsync();
     Task<IEnumerable<Package>> GetActivePackageAsync();
     Task<Package> AddAsync(Package package);
-    Task<bool> UpadateAsync(Package package);
+    Task<bool> UpdateAsync(Package package);
     Task<bool> DeleteAsync(int id);
   }
 }

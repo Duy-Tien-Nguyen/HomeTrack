@@ -1,8 +1,8 @@
-
-using HomeTrack.Domain.Account;
 using HomeTrack.Application.Interface;
+// using HomeTrack.Domain.Account; // <-- Có thể xóa hoặc comment dòng này
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using HomeTrack.Api.Models.Entities; // <-- THÊM DÒNG NÀY
 
 namespace HomeTrack.Infrastructure.Repositories
 {
@@ -15,29 +15,33 @@ namespace HomeTrack.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task AddAsync(ConfirmationToken token)
+        public async Task AddAsync(HomeTrack.Api.Models.Entities.ConfirmationToken token)
         {
-            await _context.ConfirmationTokens.AddAsync(token);
+            // Kiểm tra loại của token được truyền vào nếu cần
+            await _context.ConfirmationTokens.AddAsync(token); // Đảm bảo đây là DbSet của Entity từ Models.Entities
         }
 
-        public async Task<ConfirmationToken?> GetByUserIdAndTokenAsync(int userId, string token)
+        public async Task<HomeTrack.Api.Models.Entities.ConfirmationToken?> GetByUserIdAndTokenAsync(int userId, string token)
         {
+            // Đảm bảo FirstOrDefaultAsync trả về Entity từ Models.Entities
             return await _context.ConfirmationTokens
                                  .FirstOrDefaultAsync(t => t.UserId == userId && t.Token==token);
         }
 
         public async Task MarkAsUsedAsync(int tokenId)
         {
+            // Đảm bảo tìm kiếm Entity từ Models.Entities
             var tokenEntity = await _context.ConfirmationTokens.
                 FirstOrDefaultAsync(t => t.Id == tokenId);
             if (tokenEntity != null)
             {
-                tokenEntity.Used = true;
+                tokenEntity.Used = true; // Sử dụng thuộc tính Used của Entity từ Models.Entities
             }
         }
 
         public async Task InvalidateActiveOtpTokensForUserAsync(int userId)
-{
+        {
+            // Đảm bảo tìm kiếm và làm việc với Entity từ Models.Entities
             var activeTokens = await _context.ConfirmationTokens
                 .Where(t => t.UserId == userId && !t.Used)
                 .ToListAsync();
@@ -46,8 +50,7 @@ namespace HomeTrack.Infrastructure.Repositories
             {
                 foreach (var token in activeTokens)
                 {
-                    token.Used = true; // Hoặc một trạng thái "Vô hiệu hóa" khác
-                    // Hoặc token.ExpirationAt = DateTime.UtcNow; // Đặt hết hạn ngay lập tức
+                    token.Used = true; // Sử dụng thuộc tính Used của Entity từ Models.Entities
                 }
                 // Việc SaveChangesAsync sẽ được gọi bởi lớp Service sau khi tất cả các thao tác hoàn tất
             }

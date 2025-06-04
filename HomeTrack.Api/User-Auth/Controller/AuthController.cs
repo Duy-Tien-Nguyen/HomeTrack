@@ -39,7 +39,6 @@ namespace HomeTrack.Api.Controllers
         return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
       }
 
-      // Chuyển đổi userIdString sang int
       if (int.TryParse(userIdString, out int userId))
       {
         try
@@ -52,7 +51,6 @@ namespace HomeTrack.Api.Controllers
           }
           else
           {
-
             _logger.LogWarning("Logout process for UserId {UserId} did not complete successfully (as reported by AuthService).", userId);
             return Ok(new { message = "Yêu cầu đăng xuất đã được xử lý." });
           }
@@ -72,43 +70,29 @@ namespace HomeTrack.Api.Controllers
 
     [Authorize]
     [HttpGet("access_token")]
-    public Task<AccessTokenString> GetAccessToken()
+    public AccessTokenString GetAccessToken()
     {
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-      var email = User.FindFirst(ClaimTypes.Email)?.Value;
-      var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-      return _authService.GetAccessToken(userId, email, role);
+      return _authService.GetAccessToken();
     }
 
     [Authorize]
     [HttpPatch("reset_password")]
     public async Task<bool> ResetPassword([FromBody] ResetPasswordRequest req)
     {
-      var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+      var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-      int.TryParse(userId, out int userIdInt);
+      if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+      {
+         throw new InvalidOperationException("Không thể xác định người dùng từ token.");
+      }
 
-      bool result = await _authService.ResetPassword(userIdInt, req.newPassword);
-      return result;
+      return await _authService.ResetPassword(userId, req.newPassword);
     }
 
     [HttpPatch("forgot_password")]
     public async Task<bool> ForgetPassword([FromBody] ForgetPasswordRequest req)
     {
-      if (req.newPassword != req.repeatPassword)
-      {
-        throw new InvalidOperationException("Mật khẩu lặp lại không khớp.");
-      }
-      bool result = await _authService.ForgotPassword(req.token, req.email, req.newPassword);
-      if (result)
-      {
-        return true;
-      }
-      else
-      {
-        throw new InvalidOperationException("Đổi mật khẩu thất bại.");
-      }
+      return await _authService.ForgotPassword(req);
     }
   }
 }

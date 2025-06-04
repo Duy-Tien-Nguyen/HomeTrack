@@ -1,3 +1,4 @@
+using HomeTrack.Infrastructure.Repositories;
 using HomeTrack.Application.Interface;
 
 namespace HomeTrack.Application.Interfaces

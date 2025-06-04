@@ -1,9 +1,9 @@
 using HomeTrack.Application.Interface;
-using HomeTrack.Domain;
 using HomeTrack.Domain.Enum;
 using HomeTrack.Infrastructure.Data;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using HomeTrack.Api.Models.Entities; 
 
 namespace HomeTrack.Application.Services
 {
@@ -14,14 +14,16 @@ namespace HomeTrack.Application.Services
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly ILogger<RegistrationService> _logger;
-        private readonly IPasswordHasher<User> _passwordHasher;
+        // Sử dụng HomeTrack.Api.Models.Entities.User
+        private readonly IPasswordHasher<HomeTrack.Api.Models.Entities.User> _passwordHasher;
 
 
         public RegistrationService(IUserRepository userRepo,
             ITokenService tokenService,
             IEmailService emailService,
             ILogger<RegistrationService> logger,
-            IPasswordHasher<User> passwordHasher,
+            // Sử dụng HomeTrack.Api.Models.Entities.User
+            IPasswordHasher<HomeTrack.Api.Models.Entities.User> passwordHasher,
             ApplicationDBContext context)
         {
             _userRepo = userRepo;
@@ -43,14 +45,16 @@ namespace HomeTrack.Application.Services
                 _logger.LogWarning("Registration attempt for existing email: {Email}", email);
                 throw new InvalidOperationException("Email already registered.");
             }
-            var user = new User
+            
+            // Tạo instance từ HomeTrack.Api.Models.Entities.User
+            var user = new HomeTrack.Api.Models.Entities.User
             {
                 Email = email,
-                Password = string.Empty, // Password will be set after hashing
-                FirstName = firstName,
-                LastName = lastName,
-                Role = Role.Basic,
-                Status = UserStatus.Pending,
+                Password = string.Empty,
+                Firstname = firstName, // Sử dụng Firstname
+                Lastname = lastName,   // Sử dụng Lastname
+                Role = Role.Basic, // Sử dụng Role từ Domain.Enum
+                Status = UserStatus.PendingVerification, // Sử dụng UserStatus từ Domain.Enum
             };
             user.Password = _passwordHasher.HashPassword(user, password);
 

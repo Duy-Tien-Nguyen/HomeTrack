@@ -1,7 +1,5 @@
 using HomeTrack.Application.Interface;
 using HomeTrack.Domain.Account;
-using System;
-using System.Threading.Tasks;
 
 namespace HomeTrack.Application.Services
 {

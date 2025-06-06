@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Domain;
 using HomeTrack.Domain.Account;
-using System.Reflection.Emit;
+using HomeTrack.Api.Models.Entities;
 
 namespace HomeTrack.Infrastructure.Data
 {
@@ -41,11 +41,11 @@ namespace HomeTrack.Infrastructure.Data
               .IsRequired()
               .HasMaxLength(256);
 
-        entity.Property(u => u.Firstname)
+        entity.Property(u => u.FirstName)
               .HasColumnName("first_name")
               .HasMaxLength(100);
 
-        entity.Property(u => u.Lastname)
+        entity.Property(u => u.LastName)
               .HasColumnName("last_name")
               .HasMaxLength(100);
 

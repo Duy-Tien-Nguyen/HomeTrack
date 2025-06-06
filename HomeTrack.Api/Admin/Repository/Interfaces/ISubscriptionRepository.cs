@@ -1,5 +1,4 @@
-// using HomeTrack.Domain; // <-- Xóa hoặc comment
-using HomeTrack.Api.Models.Entities; // <-- Đảm bảo dòng này
+using HomeTrack.Domain; 
 
 namespace HomeTrack.Application.Interface
 {

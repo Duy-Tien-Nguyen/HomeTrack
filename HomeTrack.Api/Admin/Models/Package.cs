@@ -1,6 +1,4 @@
-using HomeTrack.Api.Models.Entities;
-
-namespace HomeTrack.Api.Models.Entities 
+namespace HomeTrack.Domain
 {
 
 public class Package

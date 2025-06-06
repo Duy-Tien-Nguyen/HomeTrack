@@ -1,6 +1,5 @@
 using HomeTrack.Application.Interface;
-// using HomeTrack.Domain; // <-- Xóa hoặc comment
-using HomeTrack.Api.Models.Entities; // <-- Đảm bảo dòng này
+using HomeTrack.Domain; 
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeTrack.Infrastructure.Repositories

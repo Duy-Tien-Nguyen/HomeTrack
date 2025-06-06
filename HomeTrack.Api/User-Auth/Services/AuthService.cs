@@ -1,13 +1,9 @@
 using HomeTrack.Api.Request;
 using HomeTrack.Application.Interface;
-using HomeTrack.Domain;
 using HomeTrack.Infrastructure.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using Sprache;
-using HomeTrack.Api.Models.Entities;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace HomeTrack.Application.Services
 {
@@ -91,20 +87,22 @@ namespace HomeTrack.Application.Services
 
       if (httpContext?.User == null)
       {
-          throw new InvalidOperationException("HttpContext hoặc User không khả dụng. Đảm bảo request được xác thực.");
+        throw new InvalidOperationException("HttpContext hoặc User không khả dụng. Đảm bảo request được xác thực.");
       }
 
       var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
       var email = httpContext.User.FindFirst(ClaimTypes.Email)?.Value;
       var role = httpContext.User.FindFirst(ClaimTypes.Role)?.Value;
 
-       if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(role))
+      if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(role))
       {
-         throw new InvalidOperationException("Thông tin người dùng không đầy đủ trong token.");
+        throw new InvalidOperationException("Thông tin người dùng không đầy đủ trong token.");
       }
 
       var token = _jwtService.GenerateJwtToken(userId, email, role, Domain.Enum.JwtType.AccessToken);
       return new AccessTokenString { accessToken = token };
+    }
+
     public async Task<AccessTokenString> GetAccessToken(string userId, string email, string role)
     {
       var user = await _userRepo.GetByEmailAsync(email);
@@ -160,7 +158,28 @@ namespace HomeTrack.Application.Services
         throw new InvalidOperationException("Token không hợp lệ hoặc đã hết hạn.");
       }
     }
-    
+
+    public async Task<bool> ForgotPassword(string email, string newPassword, string token)
+    {
+      var user = await _userRepo.GetByEmailAsync(email);
+      if (user == null)
+      {
+        throw new InvalidOperationException("Người dùng không tồn tại.");
+      }
+
+      bool isTokenValid = await _tokenService.VerifyTokenAsync(user.Id, token);
+      if (isTokenValid)
+      {
+        user.Password = _passwordHasher.HashPassword(user, newPassword);
+        await _userRepo.SaveChangesAsync();
+        return true;
+      }
+      else
+      {
+        throw new InvalidOperationException("Token không hợp lệ hoặc đã hết hạn.");
+      }
+    }
+
     public async Task<UserDto> GetProfile(int userId)
     {
       var user = await _userRepo.GetByIdAsync(userId);
@@ -170,15 +189,15 @@ namespace HomeTrack.Application.Services
         {
           Id = user.Id,
           Email = user.Email,
-          FirstName = user.FirstName,
-          LastName = user.LastName,
+          FirstName = user.Firstname,
+          LastName = user.Lastname,
           Role = user.Role.ToString()
         };
       }
       else
       {
         throw new InvalidOperationException("Người dùng không tồn tại.");
-      }
     }
   }
+}
 }

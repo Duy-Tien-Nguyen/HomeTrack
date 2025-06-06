@@ -1,8 +1,6 @@
-using HomeTrack.Application.Interface;
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using HomeTrack.Api.Models.Entities;
-using System.Threading.Tasks;
+using HomeTrack.Domain;
 
 namespace HomeTrack.Infrastructure.Repositories
 {
@@ -119,11 +117,7 @@ namespace HomeTrack.Infrastructure.Repositories
       return await _context.Packages.Where(p => p.isActive).ToListAsync();
     }
 
-    public async Task<Package> AddAsync(Package package)
-    {
-      await _context.Packages.AddAsync(package);
-      return package;
-    }
+    // Duplicate AddAsync method removed to resolve method conflict.
 
     public async Task<bool> UpdateAsync(Package package)
     {
@@ -132,15 +126,5 @@ namespace HomeTrack.Infrastructure.Repositories
       return true;
     }
 
-    public async Task<bool> DeleteAsync(int id)
-    {
-      var packageToDelete = await _context.Packages.FindAsync(id);
-      if (packageToDelete == null)
-      {
-        return false;
-      }
-      _context.Packages.Remove(packageToDelete);
-      return true;
-    }
   }
 }

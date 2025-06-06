@@ -22,15 +22,6 @@ namespace HomeTrack.Application.AcprojSupport
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             builder.Services.AddValidatorsFromAssemblyContaining<ResetPasswordRequest>();
             builder.Services.AddValidatorsFromAssemblyContaining<ForgetPasswordRequest>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreatePackageDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<PackageDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<DeletePackageDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<UpdatePackageDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<CreateSubscriptionDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<SubscriptionDtoValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<GetSubscriptionByIdReqValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<ExpireSubscriptionReqValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<UpdateSubscriptionStatusDtoValidator>();
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();
 

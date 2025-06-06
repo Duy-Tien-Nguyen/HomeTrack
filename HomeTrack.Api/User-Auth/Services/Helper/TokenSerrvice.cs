@@ -1,9 +1,15 @@
 using HomeTrack.Application.Interface;
+<<<<<<< HEAD
 
 using System;
 using System.Threading.Tasks;
 using HomeTrack.Api.Models.Entities; 
 using Microsoft.Extensions.Logging; 
+=======
+using HomeTrack.Domain.Account;
+using System;
+using System.Threading.Tasks;
+>>>>>>> parent of 344a9ee (add Package, Subscription validator for DTO)
 
 namespace HomeTrack.Application.Services
 {

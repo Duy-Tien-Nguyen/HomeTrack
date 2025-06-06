@@ -2,7 +2,7 @@ using HomeTrack.Application.Interface;
 // using HomeTrack.Domain.Account; // <-- Có thể xóa hoặc comment dòng này
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using HomeTrack.Api.Models.Entities; // <-- THÊM DÒNG NÀY
+using HomeTrack.Domain;
 
 namespace HomeTrack.Infrastructure.Repositories
 {

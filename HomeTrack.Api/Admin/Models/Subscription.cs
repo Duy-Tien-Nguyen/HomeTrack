@@ -2,7 +2,7 @@ using HomeTrack.Domain;
 using HomeTrack.Domain.Enum;
 using HomeTrack.Api.Models.Entities;
 
-namespace HomeTrack.Api.Models.Entities
+namespace HomeTrack.Domain
 {
     public class Subscription
     {

@@ -1,4 +1,5 @@
-using HomeTrack.Domain;
+using HomeTrack.Api.Models.Entities;
+
 namespace HomeTrack.Application.Interface
 {
     public interface IUserRepository

@@ -21,14 +21,13 @@ namespace HomeTrack.Domain
     {
       CreatedAt = DateTime.UtcNow;
       UpdatedAt = DateTime.UtcNow;
-      Status = UserStatus.Pending; // Default status
-      Role = Role.Basic; // Default role
+      Status = UserStatus.PendingVerification; 
+      Role = Role.Basic;
     }
     public bool ValidatePassword(string password)
     {
-      // Implement password validation logic here
-      // For example, check if the password matches the stored hash
-      return Password == password; // Simplified for demonstration purposes
+  
+      return Password == password; 
     }
     public void Active()
     {

@@ -1,10 +1,15 @@
 using HomeTrack.Application.Interface;
-using HomeTrack.Domain.Account;
+
+using System;
+using System.Threading.Tasks;
+using HomeTrack.Api.Models.Entities; 
+using Microsoft.Extensions.Logging; 
 
 namespace HomeTrack.Application.Services
 {
     public class TokenService : ITokenService
     {
+        // Sử dụng ITokenRepository với ConfirmationToken từ HomeTrack.Api.Models.Entities
         private readonly ITokenRepository _tokenRepo;
         private readonly ILogger<TokenService> _logger;
 
@@ -20,7 +25,8 @@ namespace HomeTrack.Application.Services
 
             string otp = random.Next(0, 1000000).ToString("D6");
 
-            var confirmation = new ConfirmationToken
+            // Tạo instance từ HomeTrack.Api.Models.Entities.ConfirmationToken
+            var confirmation = new HomeTrack.Api.Models.Entities.ConfirmationToken
             {
                 UserId = userId,
                 Token = otp,
@@ -45,9 +51,10 @@ namespace HomeTrack.Application.Services
         {
             try
             {
+                // Nhận về Entity từ HomeTrack.Api.Models.Entities.ConfirmationToken
                 var tokenData = await _tokenRepo.GetByUserIdAndTokenAsync(userId, token);
                 if (tokenData == null || tokenData.Used || tokenData.ExpirationAt < DateTime.UtcNow
-                    || tokenData.Token != token)
+                    || tokenData.Token != token) // Thuộc tính Used và Token từ Entity đúng
                     return false;
 
                 await _tokenRepo.MarkAsUsedAsync(tokenData.Id);

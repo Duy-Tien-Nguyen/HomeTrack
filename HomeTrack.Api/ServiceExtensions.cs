@@ -4,6 +4,7 @@ using HomeTrack.Infrastructure.Repositories;
 using HomeTrack.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using HomeTrack.Domain;
+using HomeTrack.Api.Services;
 
 namespace HomeTrack.Application.AcprojSupport
 {
@@ -16,7 +17,7 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ITokenRepository, TokenRepository>();
             services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            services.AddScoped<IPasswordHasher<HomeTrack.Api.Models.Entities.User>, PasswordHasher<HomeTrack.Api.Models.Entities.User>>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPackageRepository, PackageRepository>();
@@ -26,6 +27,10 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<ISystemSettingService, SystemSettingService>();
+            services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IItemService, ItemService>();
+            services.AddScoped<ISearchService, SearchService>();
+            services.AddScoped<IStatisticsService, StatisticsService>();
 
 
             services.AddControllers();

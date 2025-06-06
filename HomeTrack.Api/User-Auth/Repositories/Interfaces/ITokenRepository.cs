@@ -1,4 +1,5 @@
-using HomeTrack.Domain.Account;
+using HomeTrack.Api.Models.Entities;
+
 namespace HomeTrack.Application.Interface
 {
     public interface ITokenRepository

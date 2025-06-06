@@ -1,4 +1,7 @@
-namespace HomeTrack.Domain;
+using HomeTrack.Api.Models.Entities;
+
+namespace HomeTrack.Api.Models.Entities 
+{
 
 public class Package
 {
@@ -11,5 +14,7 @@ public class Package
   public DateTime CreateAt { get; set; }
   public DateTime UpdateAt { get; set; }
 
+  // Navigation property - Đảm bảo Subscription Entity cũng dùng chung namespace nếu có thể
   public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+}
 }

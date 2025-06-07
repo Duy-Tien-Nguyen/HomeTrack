@@ -17,6 +17,10 @@ namespace HomeTrack.Domain
     public DateTime UpdatedAt { get; set; }
 
     public virtual ICollection<ConfirmationToken> ConfirmationTokens { get; set; } = new List<ConfirmationToken>();
+    public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+    public virtual ICollection<Location> Locations { get; set; } = new List<Location>();
+    public virtual ICollection<Tag> Tags { get; set; } = new List<Tag>();
+    public virtual ICollection<FileStorage> FileStorages { get; set; } = new List<FileStorage>();
     public User()
     {
       CreatedAt = DateTime.UtcNow;

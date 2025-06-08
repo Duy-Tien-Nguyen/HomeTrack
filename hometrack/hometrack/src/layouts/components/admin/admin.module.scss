@@ -1,0 +1,27 @@
+.content{
+    cursor: pointer;
+    display: flex;
+}
+
+.admin{
+    margin-right: 5px;
+    margin-top: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+    color: #fff;
+    font-weight: 500;
+  }
+  .item-admin{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(0,0,0,0.5);
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    color: #fff;
+  
+  }

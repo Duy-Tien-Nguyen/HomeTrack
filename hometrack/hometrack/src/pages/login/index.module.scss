@@ -1,0 +1,148 @@
+.wrapper {
+  background-color: #2563eb;
+  height: 800px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  background-image: url("../../assets/imgs/anh-mang.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.font-login {
+  border: 10px solid #000;
+  height: 375px;
+
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  /* background-color: white; */
+  padding: 32px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  width: 445px;
+  background-color: #fcf2e5;
+  text-align: center;
+}
+.header {
+  font-size: 2rem;
+  font-weight: 600;
+}
+.content {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: #878484;
+  margin-top: 10px;
+}
+.login-form {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-content-1 {
+  position: relative;
+  // height: 50px;
+  width: 100%;
+
+  .name {
+    // background-color: #878484;
+    padding-top: 15px;
+    margin-top: 5px;
+    width: 180px;
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: left;
+  }
+  .input-name {
+    height: 40px;
+    width: 98%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding-left: 15px;
+  }
+}
+
+.input-content-2 {
+  margin-top: -20px;
+  position: relative;
+  // height: 50px;
+  width: 100%;
+
+  .name {
+    // background-color: #878484;
+    padding-top: 15px;
+    margin-top: 5px;
+    width: 180px;
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: left;
+  }
+  .input-name {
+    background-color: #fff;
+    height: 40px;
+    width: 98%;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    
+    .input {
+      border-radius: 10px;
+      width: 85%;
+      border: none;
+      outline: none;
+      height: 35px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      padding-left: 15px;
+    }
+    .input-otp{
+      border-radius: 20px;
+    }
+
+    .button {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-right: 1px;
+      background-color: #ff69a3;
+      border:  1px solid #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+      height: 38px;
+      width: 15%;
+      &:hover{
+        background-color: #e6e6e6;
+      border:  1px solid #acacac;
+
+      }
+    }
+  }
+}
+.submit {
+  margin-top: 15px;
+  background-color: #2563eb;
+  height: 60px;
+  width: 103%;
+  border-radius: 11px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  &:hover {
+    background-color: #878484;
+  }
+}

@@ -1,0 +1,60 @@
+.wrapper {
+  .header {
+    display: flex;
+    .header-left {
+      color: #fff;
+      padding-left: 47px;
+      padding-top: 21px;
+      background-color: #1553c5;
+      width: 17.2%;
+      height: 70px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      display: flex;
+    }
+    .header-right {
+      // background-color: #1553c5;
+      border: 1px solid #ccc;
+      width: 80%;
+      display: flex;
+      position: relative;
+      .content {
+        padding-left: 35px;
+        padding-top: 10px;
+        .content-1 {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+        .content-2 {
+          padding-top: 15px;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #828080;
+        }
+      }
+      .inform {
+        position: absolute;
+        display: flex;
+        top: 19%;
+        right: 5%;
+      }
+      .search {
+      }
+      .information {
+      }
+    }
+  }
+}
+
+.main {
+  width: 100%;
+  display: flex;
+}
+
+.main-sidebar {
+  width: 20%;
+}
+
+.main-content {
+  width: 80%;
+}

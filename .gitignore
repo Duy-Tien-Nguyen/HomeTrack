@@ -5,6 +5,8 @@
 **/.env
 **/appsettings.json
 
+**/bin/*
+
 # Ignore Cho từng phần cụ thể
 HomeTrack.Api/bin/
 HomeTrack.Api/obj/

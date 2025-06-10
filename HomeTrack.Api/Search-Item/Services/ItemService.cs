@@ -29,7 +29,7 @@ public class ItemService : IItemService
                 }
 
                 var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetExtension(itemDto.ImageFile.FileName);
-                var uploadsFolderPath = Path.Combine(_hostEnvironment.WebRootPath ?? "wwwroot", "uploads", "items");
+                var uploadsFolderPath = Path.Combine(_hostEnvironment.WebRootPath ?? "wwwroot", "uploads", "items", userId.ToString());
 
                 if (!Directory.Exists(uploadsFolderPath))
                 {
@@ -43,7 +43,7 @@ public class ItemService : IItemService
                     await itemDto.ImageFile.CopyToAsync(stream); 
                 }
 
-                imageUrl = $"/uploads/items/{uniqueFileName}";
+                imageUrl = $"/uploads/items/{userId}/{uniqueFileName}";
             }
 
             var newItemEntity = new Item 

@@ -29,6 +29,8 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<IItemService, ItemService>();
             services.AddScoped<ISearchService, SearchService>();
             services.AddScoped<IStatisticsService, StatisticsService>();
+            services.AddScoped<ILocationService, LocationService>();
+
 
 
             services.AddControllers();

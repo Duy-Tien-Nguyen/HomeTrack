@@ -44,7 +44,7 @@ namespace HomeTrack.Api.Controller
     }
 
     [Authorize]
-    [HttpGet("advanced")]
+    [HttpPost("advanced")]
     public async Task<IActionResult> AdvancedSearchItems([FromBody] AdvancedSearchRequestDto req)
     {
       // Extract userId from claims

@@ -1,7 +1,9 @@
 using HomeTrack.Api.Request;
 using HomeTrack.Application.Interface;
+using HomeTrack.Domain;
 using HomeTrack.Domain.Enum;
 using HomeTrack.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeTrack.Application.Services
 {
@@ -169,5 +171,89 @@ namespace HomeTrack.Application.Services
         return false;
       }
     }
+
+    public async Task<ServiceResult<IEnumerable<StatsReport>>> GetSystemLogsAsync(int? userId, string? actionType, DateTime? startTime, DateTime? endTime)
+    {
+      try
+      {
+        var query = _context.StatsReports.AsQueryable();
+
+        if (userId.HasValue)
+        {
+          query = query.Where(log => log.UserId == userId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(actionType))
+        {
+          // Cân nhắc chuyển đổi actionType string sang ActionType enum nếu có thể để truy vấn chặt chẽ hơn
+          query = query.Where(log => log.ActionType.ToString().Equals(actionType, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (startTime.HasValue)
+        {
+          query = query.Where(log => log.Timestamp >= startTime.Value);
+        }
+
+        if (endTime.HasValue)
+        {
+          query = query.Where(log => log.Timestamp <= endTime.Value);
+        }
+
+        var logs = await query.OrderByDescending(log => log.Timestamp).ToListAsync();
+        return ServiceResult<IEnumerable<StatsReport>>.Success(logs);
+      }
+      catch (Exception ex)
+      {
+        return ServiceResult<IEnumerable<StatsReport>>.Failure($"Đã xảy ra lỗi khi lấy logs hệ thống: {ex.Message}");
+      }
+
+    }
+
+    public async Task<ServiceResult<IEnumerable<object>>> GetUserRegistrationsPerMonthAsync()
+    {
+      try
+      {
+        var result = await _context.Users
+            .GroupBy(u => new { u.CreatedAt.Year, u.CreatedAt.Month })
+            .Select(g => new
+            {
+              Year = g.Key.Year,
+              Month = g.Key.Month,
+              UserCount = g.Count()
+            })
+            .OrderBy(g => g.Year).ThenBy(g => g.Month)
+            .ToListAsync();
+        return ServiceResult<IEnumerable<object>>.Success(result.Cast<object>());
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while getting user registrations per month.");
+        return ServiceResult<IEnumerable<object>>.Failure($"Đã xảy ra lỗi khi lấy thống kê người dùng theo tháng: {ex.Message}");
+      }
+    }
+
+    public async Task<ServiceResult<IEnumerable<object>>> GetItemCreationsPerMonthAsync()
+    {
+      try
+      {
+        var result = await _context.Items
+            .GroupBy(i => new { i.CreatedAt.Year, i.CreatedAt.Month })
+            .Select(g => new
+            {
+              Year = g.Key.Year,
+              Month = g.Key.Month,
+              ItemCount = g.Count()
+            })
+            .OrderBy(g => g.Year).ThenBy(g => g.Month)
+            .ToListAsync();
+        return ServiceResult<IEnumerable<object>>.Success(result.Cast<object>());
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while getting item creations per month.");
+        return ServiceResult<IEnumerable<object>>.Failure($"Đã xảy ra lỗi khi lấy thống kê đồ vật theo tháng: {ex.Message}");
+      }
+    }
+
   }
 }

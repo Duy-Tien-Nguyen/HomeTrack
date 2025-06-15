@@ -1,0 +1,25 @@
+.wrapper {
+  background-color: #1553c5;
+  height: 64px;
+  width: 100%;
+  display: flex;
+}
+
+.content {
+  color: #fff;
+  padding-top: 15px;
+  padding-left: 30px;
+  font-size: 1.8rem;
+  font-weight: 600;
+
+  display: flex;
+  align-content: center;
+}
+
+.user {
+  display: flex;
+  width: 120px;
+  height: 60px;
+  margin-top: 11px;
+  margin-left: 980px;
+}

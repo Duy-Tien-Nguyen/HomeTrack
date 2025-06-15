@@ -1,0 +1,166 @@
+.wrapper {
+  background: linear-gradient(to right, rgb(140, 17, 221), rgba(2, 3, 69, 0));
+  width: auto;
+  height: 738px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form {
+  width: 450px;
+  padding: 10px;
+}
+
+.header {
+  width: 100%;
+}
+
+.header-icon {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-H1 {
+  background-color: #f3f4f6;
+  border-radius: 50px;
+  padding: 10px;
+  color: #4f46e5;
+  height: 30px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.header-contentH1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8rem;
+  padding: 10px;
+  font-weight: 700;
+}
+
+.header-contentH3 {
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// end
+
+.main {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.main-item {
+}
+
+.main-content {
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+}
+
+.main-content-item {
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  height: 43px;
+  border-radius: 5px;
+  width: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1px;
+}
+
+.main-icon {
+  width: 20px;
+  display: flex;
+
+  padding: 10px;
+  padding-right: 10px;
+}
+
+.icon {
+  height: 25px;
+}
+
+.main-input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3rem;
+  font-weight: 500;
+  border: none;
+  width: 100%;
+  height: 35px;
+  outline: none;
+  padding-left: 10px;
+}
+.send {
+  cursor: pointer;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding: 10px;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #4f46e5;
+}
+
+.footer {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.footer-btn {
+  margin-top: 5px;
+  width: 94%;
+  background-color: #4f46e5;
+  height: 20px;
+  padding: 10px;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #726ce6;
+  }
+}
+
+.footer-content {
+}
+
+.footer-content-content {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.footer-icon {
+  padding: 10px;
+}
+
+.iconH3 {
+  height: 15px;
+}
+
+.link {
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  cursor: pointer;
+  &:hover {
+    color: #726ce6;
+  }
+}

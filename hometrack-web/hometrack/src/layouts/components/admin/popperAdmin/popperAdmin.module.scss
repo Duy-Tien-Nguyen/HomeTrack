@@ -1,0 +1,43 @@
+.wrapper{
+    height: 40px;
+    width: 220px;
+    background-color: #f1f5f9;
+    border-radius: 50px;
+    border: 1px solid rgba(0,0,0,0.5);
+    box-shadow: 1px 1px 1px 1px #f4f4f4;
+    &:hover{
+        background-color: #e9e6e6;
+    border: 1px solid rgba(0,0,0,0.3);
+        
+    }
+}
+.link-login{
+    text-decoration: none;
+    color: #000;
+}
+
+
+.item{
+   
+    height: 40px;
+    width: 220px;
+    // background-color: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+}
+
+.icon{
+
+}
+.icon-c{
+    margin-right: 30px;
+    height: 20px;
+    width: 20px;
+}
+.content{
+    font-size: 1.1rem;
+    font-weight: 500;
+}

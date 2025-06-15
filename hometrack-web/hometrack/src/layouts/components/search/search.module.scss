@@ -1,0 +1,52 @@
+:root{
+    --input: #eaeaea;
+}
+.wrapper{
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.main{
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    height: 60px;
+    width: 450px;
+    background-color: var(--input);
+    position: relative;
+
+}
+.main-icon{
+height: 60px;
+width: 30px;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.icon{
+    margin-left: 15px;
+    font-size: 1.5rem;
+    font-weight: 500;
+
+}
+.input{
+    right: 0;
+    border-radius: 10px;
+    position: absolute;
+    display: flex;
+    align-content: center;
+    outline: none;
+    border: none;
+    background-color: var(--input);
+    width: 400px;
+    padding: 5px;
+    height: 50px ;
+    font-size: 1.6rem;
+    font-weight: 500;
+
+}
+.icon{
+    color: #ccc;
+}

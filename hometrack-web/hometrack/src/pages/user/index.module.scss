@@ -1,0 +1,165 @@
+.header {
+  margin-top: 35px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.headerRow {
+  font-weight: bold;
+  background: #f9f9f9;
+}
+
+.cell {
+  flex: 1;
+  padding: 5px 10px;
+}
+.cell-name{
+    display: flex;
+}
+.item-name{
+     margin-right: 15px;
+     height: 35px;
+     width: 35px;
+     border: 1px solid rgba(0,0,0,0.5);
+     border-radius: 50%;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     background-color: #f1f5f9;
+     font-size: 1.2rem;
+     font-weight: 500;
+}
+.name{
+    margin-top: 8px;
+
+}
+
+.status {
+  width: 80px;
+  padding: 4px 8px;
+  border-radius: 50px;
+  font-size: 14px;
+  display: inline-block;
+  text-align: center;
+}
+
+.service {
+  width: 120px;
+  padding: 8px;
+  border-radius: 50px;
+  font-size: 13px;
+}
+
+.actions {
+  border-radius: 50px;
+  height: 30px;
+  background-color: #f1f5f9;
+  display: flex;
+justify-content: center;
+align-items: center;  
+  width: 100px;
+  cursor: pointer;
+  &:hover{
+    border: 1px solid #000;
+  }
+}
+
+.iconButton {
+  background-color: #f1f5f9;
+  color: #1e1f1f;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+// box
+
+.footer{
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.footer-box{
+    display: flex;
+
+}
+.box{
+    height: 35px;
+    width: 35px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(0,0,0,0.5);
+    border-radius: 10px;
+    margin: 10px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    &:hover{
+        background-color: #3b82f6;
+        color: #fff;
+    }
+}
+
+// icon 
+
+
+.iconButton{
+  background-color: #f1f5f9;
+  border-radius: 10px;
+  height: 40px;
+  width: 40px;
+}
+
+.icon{
+  height: 25px;
+}
+
+
+// tippy
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.15);
+  z-index: 999; // đảm bảo nằm dưới popup nhưng trên nội dung
+}
+
+.popup-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.popper-wrapper-box{
+  position: relative;
+  .Detail-Popup{
+    position:absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-120%, -20%);
+     }
+
+}
+
+

@@ -45,9 +45,7 @@ export default function Dashboard() {
         method: "GET",
       });
 
-      console.log("Dashboard - itemsGetAll API Status:", response.status);
       const responseText = await response.text();
-      console.log("Dashboard - itemsGetAll API Response Text:", responseText);
 
       if (response.status === 204 || response.headers.get('content-length') === '0') {
         setRecentItems([]);
@@ -58,7 +56,6 @@ export default function Dashboard() {
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        console.error("Dashboard - Error parsing JSON for itemsGetAll:", e);
         setError("Failed to parse items data.");
         setRecentItems([]);
         return 0; // Return 0 on error
@@ -68,7 +65,6 @@ export default function Dashboard() {
         const fetchedItems = data.data || data;
 
         if (!Array.isArray(fetchedItems)) {
-          console.error("Dashboard - itemsGetAll did not return an array:", fetchedItems);
           setError("Invalid data format for items.");
           setRecentItems([]);
           return 0; // Return 0 on invalid data
@@ -85,7 +81,6 @@ export default function Dashboard() {
           imageUrl: item.imageUrl,
           quantity: item.quantity
         })));
-        console.log("Dashboard - fetchedItems.length for totalItems:", fetchedItems.length);
         return fetchedItems.length; // Return the count of items
       } else {
         setError(data.message || "Failed to fetch recent items");

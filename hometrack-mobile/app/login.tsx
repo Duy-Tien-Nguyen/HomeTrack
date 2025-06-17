@@ -65,8 +65,6 @@ export default function Login() {
       const data = await response.json();
       setLoading(false);
 
-      console.log("🟢 Login response:", data);
-
       if (!response.ok || !data.accessToken) {
         Alert.alert("Lỗi", data.message || "Đăng nhập thất bại.");
         return false;
@@ -74,12 +72,10 @@ export default function Login() {
 
       await AsyncStorage.setItem("accessToken", data.accessToken);
       await AsyncStorage.setItem("refreshToken", data.refreshToken);
-      console.log("✅ AccessToken đã được lưu vào AsyncStorage.");
 
       return true;
     } catch (error) {
       setLoading(false);
-      console.error("🔴 Lỗi đăng nhập:", error);
       Alert.alert("Lỗi", "Đăng nhập không thành công.");
       return false;
     }

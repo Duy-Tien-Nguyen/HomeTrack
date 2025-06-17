@@ -38,15 +38,12 @@ export default function AddItemScreen() {
     const loadLocations = async () => {
       try {
         const response = await fetchWithAuth(locationsGetAll);
-        console.log("API Status (locationsGetAll):", response.status);
         const responseText = await response.text();
-        console.log("API Response Text (locationsGetAll):", responseText);
 
         let data = null;
         try {
           data = JSON.parse(responseText);
         } catch (e) {
-          console.error("Error parsing JSON for locationsGetAll:", e);
           Alert.alert("Lỗi", "Không thể parse dữ liệu vị trí. Vui lòng kiểm tra server response.");
           return; // Dừng lại nếu parse lỗi
         }
@@ -57,7 +54,6 @@ export default function AddItemScreen() {
           Alert.alert("Lỗi", data?.message || responseText || "Không thể tải danh sách vị trí.");
         }
       } catch (error) {
-        console.error("Lỗi tải vị trí:", error);
         Alert.alert("Lỗi", "Không thể kết nối để tải danh sách vị trí.");
       }
     };
@@ -133,16 +129,12 @@ export default function AddItemScreen() {
         body: formData,
       });
 
-      // Log status và text response để debug lỗi JSON parse
-      console.log("API Status:", response.status);
       const responseText = await response.text();
-      console.log("API Response Text:", responseText);
 
       let data = null;
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        console.error("Error parsing JSON response:", e);
         // Nếu không parse được JSON, vẫn tiếp tục với thông báo lỗi chung
       }
 
@@ -156,7 +148,6 @@ export default function AddItemScreen() {
         Alert.alert("Lỗi", data?.message || responseText || "Có lỗi xảy ra khi tạo đồ vật.");
       }
     } catch (error) {
-      console.error("Network/API Error:", error);
       Alert.alert("Lỗi", "Không thể kết nối tới máy chủ.");
     }
   };

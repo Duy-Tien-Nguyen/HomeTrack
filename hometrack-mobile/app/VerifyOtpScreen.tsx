@@ -34,7 +34,6 @@ export default function VerifyOtpScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      console.log("Resend OTP to:", email);
       const data = await res.json();
       if (!res.ok) {
         Alert.alert("Lỗi", data.message || "Không gửi được mã OTP");
@@ -63,7 +62,6 @@ export default function VerifyOtpScreen() {
         body: JSON.stringify({ token: otp, email }),
       });
       const verifyData = await verifyRes.json();
-      console.info("Verify OTP response:", verifyData);
       if (!verifyRes.ok) {
         setOtpError(verifyData.message || "Xác thực OTP thất bại");
         setLoading(false);

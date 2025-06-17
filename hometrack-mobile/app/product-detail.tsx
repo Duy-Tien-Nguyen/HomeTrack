@@ -57,8 +57,6 @@ export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const itemId = parseInt(String(id).trim());
 
-  console.log("ProductDetail - Item ID received:", itemId);
-
   const [item, setItem] = useState<ItemType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,11 +96,9 @@ export default function ProductDetail() {
         throw new Error(data?.message || `Failed to fetch item: ${response.status}`);
       }
       const data: ItemType = await response.json();
-      console.log("ProductDetail - Item data received:", data);
       setItem(data);
       setName(data.name);
       setDescription(data.description);
-      console.log("Raw tags from API:", data.tags);
       let tagsToSet = data.tags;
       try {
         tagsToSet = parseDeeplyNestedJson(tagsToSet);
@@ -116,12 +112,9 @@ export default function ProductDetail() {
       }
       setTags(tagsToSet || []);
       if (data.locationId) {
-        console.log("ProductDetail - locationId:", data.locationId);
         const locationResponse = await fetchWithAuth(locationsGetById(data.locationId));
-        console.log("ProductDetail - locationResponse:", locationResponse);
         if (locationResponse.ok) {
           const locationData = await locationResponse.json();
-          console.log("ProductDetail - locationData:", locationData);
           setLocation(locationData.name);
         }
       } else {
@@ -134,7 +127,6 @@ export default function ProductDetail() {
         setImage(null);
       }
     } catch (err: any) {
-      console.error("Error loading item:", err);
       setError(err.message || "Không thể tải thông tin đồ vật");
     } finally {
       setLoading(false);
@@ -197,7 +189,6 @@ export default function ProductDetail() {
     setEditingTagText(tags[idx]);
   };
   const handleSaveTag = (savedIdx: number) => {
-    console.log(`handleSaveTag: Đang cố gắng lưu hoặc xóa tag. Index được lưu: ${savedIdx}, current editingTagIdx: ${editingTagIdx}`);
     if (editingTagIdx === savedIdx) { // Only clear if this was the one being edited
       const newTags = [...tags];
       if (editingTagText.trim()) {
@@ -208,25 +199,20 @@ export default function ProductDetail() {
       setTags(newTags);
       setEditingTagIdx(null); // Clear editing state only if it was this tag
       setEditingTagText("");
-      console.log("handleSaveTag: Tags sau khi xử lý:", newTags);
     } else {
-      console.log("handleSaveTag: Không xóa trạng thái chỉnh sửa vì một tag khác đang hoạt động.");
     }
   };
 
   const handleAddTag = () => {
-    console.log("handleAddTag: Bắt đầu. editingTagIdx hiện tại:", editingTagIdx);
     let updatedTags = [...tags];
 
     // If there was a tag being edited, finalize its content first.
     if (editingTagIdx !== null) {
       if (editingTagText.trim()) {
         updatedTags[editingTagIdx] = editingTagText.trim();
-        console.log(`handleAddTag: Đã cập nhật tag ${editingTagIdx} thành '${editingTagText.trim()}'`);
       } else {
         // If the text was empty, remove the tag that was being edited
         updatedTags.splice(editingTagIdx, 1);
-        console.log(`handleAddTag: Đã xóa tag trống tại ${editingTagIdx}`);
       }
     }
 
@@ -248,15 +234,11 @@ export default function ProductDetail() {
 
     // Add a new empty tag
     updatedTags.push("");
-    console.log("handleAddTag: Đã thêm tag trống mới.");
 
     // Update all relevant states
     setTags(updatedTags);
-    console.log("handleAddTag: Đã gọi setTags. New tags:", updatedTags);
     setEditingTagIdx(updatedTags.length - 1); // Set the new tag as the one being edited
-    console.log("handleAddTag: Đã gọi setEditingTagIdx. New editingTagIdx:", updatedTags.length - 1);
     setEditingTagText(""); // Clear the input for the new tag
-    console.log("handleAddTag: Đã gọi setEditingTagText.");
   };
 
   const handleRemoveTag = (idx: number) => {
@@ -266,124 +248,101 @@ export default function ProductDetail() {
   };
 
   const onSave = async () => {
-    console.log("onSave: Bắt đầu quá trình lưu.");
-    console.log("onSave: Giá trị Name:", name);
-    console.log("onSave: Giá trị Description:", description);
-    console.log("onSave: Giá trị Tags:", tags);
-    console.log("onSave: Giá trị LocationId:", locationId);
-    console.log("onSave: Giá trị Image:", image ? "(có ảnh)" : "(không có ảnh)");
-
-    // Filter out any empty tags before validation and saving
-    const filteredTags = tags.filter(tag => tag.trim() !== '');
-    
-    // Check tag limit based on subscription
-    if (!isPremium && filteredTags.length > 1) {
-      Alert.alert(
-        "Giới hạn nhãn",
-        "Tài khoản cơ bản chỉ được phép sử dụng 1 nhãn. Vui lòng nâng cấp lên Premium để sử dụng nhiều nhãn hơn.",
-        [
-          { text: "Đóng", style: "cancel" },
-          { 
-            text: "Nâng cấp", 
-            onPress: () => router.push("/upgrade-package")
-          }
-        ]
-      );
+    // Validation
+    if (name.trim() === "") {
+      setNameError("Tên đồ vật không được để trống.");
       return;
     }
-
-    setTags(filteredTags); // Update state to reflect filtered tags
-
-    let valid = true;
     setNameError("");
-    setTagError("");
-    setLocationError("");
-    setShowSuccess(false);
 
-    if (!name.trim()) {
-      setNameError("Không được để trống tên đồ vật");
-      valid = false;
-      console.log("onSave: Lỗi xác thực - Tên đồ vật trống.");
+    if (!tags.every(tag => tag.trim() !== "")) {
+      setTagError("Tất cả các nhãn phải có giá trị.");
+      return;
     }
-    if (!tags || tags.length === 0 || tags.some(tag => tag.trim() === '')) {
-      setTagError("Vui lòng nhập ít nhất một tag hợp lệ.");
-      valid = false;
-      console.log("onSave: Lỗi xác thực - Tag không hợp lệ hoặc trống.");
+    setTagError("");
+
+    if (locationId === null) {
+      setLocationError("Vui lòng chọn một vị trí.");
+      return;
     }
-    if (!locationId) {
-      setLocationError("Thiếu vị trí");
-      valid = false;
-      console.log("onSave: Lỗi xác thực - Thiếu vị trí.");
-    }
-    if (!valid) {
-      console.log("onSave: Xác thực thất bại, không tiến hành lưu.");
+    setLocationError("");
+
+    if (!name || tags.length === 0 || !locationId) {
       return;
     }
 
     if (!item) {
-        Alert.alert("Lỗi", "Không có dữ liệu đồ vật để lưu.");
-        console.log("onSave: Lỗi - Không có dữ liệu đồ vật để lưu.");
-        return;
+      Alert.alert("Lỗi", "Không có dữ liệu đồ vật để lưu.");
+      return;
     }
+
+    setLoading(true);
 
     try {
-        console.log("onSave: Bắt đầu gửi dữ liệu lên API.");
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("description", description);
-        formData.append("tags", JSON.stringify(tags));
-        formData.append("locationId", locationId.toString());
+      const formData = new FormData();
+      formData.append("Id", itemId.toString());
+      formData.append("Name", name);
+      formData.append("Description", description);
+      formData.append("LocationId", locationId.toString());
 
-        // Handle image upload if changed
-        if (image && image.startsWith('file://')) {
-            const imageUri = image;
-            const filename = imageUri.split('/').pop();
-            const match = /\.(\w+)$/.exec(filename || '');
-            const type = match ? `image/${match[1]}` : 'image/jpeg';
-            
-            formData.append('imageFile', {
-                uri: imageUri,
-                name: filename,
-                type
-            } as any);
-            console.log("onSave: Đã thêm hình ảnh vào FormData.");
+      tags.forEach((tag, index) => {
+        if (tag.trim() !== "") {
+          formData.append(`Tags[${index}]`, tag.trim());
         }
+      });
 
-        const response = await fetchWithAuth(itemsUpdate(item.id.toString()), {
-            method: "PUT",
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'multipart/form-data',
-            },
-            body: formData,
-        });
+      if (image && !image.startsWith("http")) {
+        const uriParts = image.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        formData.append("Image", {
+          uri: image,
+          name: `photo.${fileType}`,
+          type: `image/${fileType}`,
+        } as any);
+      }
 
-        console.log("onSave: Phản hồi API Status:", response.status);
-        const responseText = await response.text();
-        console.log("onSave: Phản hồi API Text:", responseText);
+      const response = await fetchWithAuth(itemsUpdate(itemId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
 
-        if (!response.ok) {
-            let errorMessage = `Failed to update item: ${response.status}`;
-            try {
-              const data = JSON.parse(responseText);
-              errorMessage = data?.message || errorMessage;
-            } catch (jsonError) {
-              console.error("onSave: Lỗi khi phân tích phản hồi JSON không thành công:", jsonError);
-            }
-            throw new Error(errorMessage);
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        let errorData = null;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          errorData = { message: responseText || "Unknown error" };
         }
+        throw new Error(errorData.message || "Cập nhật đồ vật thất bại.");
+      }
 
-        setShowSuccess(true);
-        console.log("onSave: Lưu thành công, chuyển hướng sau 1 giây.");
-        setTimeout(() => {
-            setShowSuccess(false);
-            setIsEditing(false);
-            router.replace("/Search Screen");
-        }, 1000);
+      Alert.alert("Thành công", "Đồ vật đã được cập nhật.");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (err: any) {
-        console.error("onSave: Lỗi khi lưu đồ vật:", err);
-        Alert.alert("Lỗi", err.message || "Không thể lưu thông tin đồ vật");
+      Alert.alert("Lỗi", err.message || "Đã xảy ra lỗi khi cập nhật đồ vật.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // When item data changes, update the image state if imageUrl exists
+  useEffect(() => {
+    if (item?.imageUrl) {
+      setImage(`${baseUrl}:${port}${item.imageUrl}`);
+    } else if (item && !item.imageUrl) {
+      setImage(null);
+    }
+  }, [item?.imageUrl]);
+
+  const isTagEditable = (idx: number) => {
+    return editingTagIdx === idx;
   };
 
   if (loading) {
@@ -405,8 +364,6 @@ export default function ProductDetail() {
       </View>
     );
   }
-
-  console.log("ProductDetail - Image state value:", image);
 
   return (
     <View style={styles.container}>
@@ -449,7 +406,6 @@ export default function ProductDetail() {
           {tags.length > 0 ? (
             <View style={styles.tagRow}>
               {tags.map((tag, idx) => {
-                console.log(`Rendering Tag - Index: ${idx}, Tag: '${tag}', Trimmed Length: ${tag.trim().length}, Is Editing Index: ${editingTagIdx === idx}, Current Editing Tag Index: ${editingTagIdx}`);
                 return (
                   // Only render the tag chip if it's being edited OR if the tag has content
                   (editingTagIdx === idx || tag.trim().length > 0) && (
@@ -459,7 +415,6 @@ export default function ProductDetail() {
                           key={`tag-input-${idx}`}
                           value={editingTagText}
                           onChangeText={(text) => {
-                            console.log(`InputField onChangeText: Nhận được text: '${text}'`);
                             setEditingTagText(text);
                           }}
                           onBlur={() => handleSaveTag(idx)}

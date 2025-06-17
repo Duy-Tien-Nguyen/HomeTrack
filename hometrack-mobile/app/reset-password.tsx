@@ -51,9 +51,7 @@ export default function ResetPassword() {
         }),
       });
 
-      console.log("Email:", email, "OTP:", otp, "New Password:", newPassword);
       const data = await res.json();
-      console.log("Reset Password Response:", data);
       if (!res.ok) {
         Alert.alert("Lỗi", data.message || "Đặt lại mật khẩu thất bại");
         return;

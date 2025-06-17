@@ -136,7 +136,7 @@ export default function Register() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      console.log("Resend OTP to:", email);
+      // console.log("Resend OTP to:", email);
       const data = await res.json();
       if (!res.ok) {
         Alert.alert("Lỗi", data.message || "Không gửi được mã OTP");

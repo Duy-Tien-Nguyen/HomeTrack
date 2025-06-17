@@ -56,10 +56,8 @@ export default function LocationManager() {
         throw new Error(data?.message || `Failed to fetch items for location: ${response.status}`);
       }
       const data = await response.json();
-      console.log(`LocationManager - Fetched items for location ${locationId}:`, data);
       setItemsForSelectedLocation(data || []);
     } catch (err: any) {
-      console.error(`Error loading items for location ${locationId}:`, err);
       // Có thể hiển thị lỗi cho người dùng nếu cần
     }
   };
@@ -74,7 +72,6 @@ export default function LocationManager() {
         throw new Error(data?.message || `Failed to fetch locations: ${response.status}`);
       }
       const data: LocationType[] = await response.json();
-      console.log("LocationManager - Fetched locations data:", data);
       setLocations(data);
       if (data.length > 0) {
         setSelectedLocationId(data[0].id); // Chọn vị trí đầu tiên nếu có

@@ -5,7 +5,7 @@ export default function Layout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false, // Ẩn header mặc định
+        headerShown: false,
       }}
     >
       <Stack.Screen name="login" />

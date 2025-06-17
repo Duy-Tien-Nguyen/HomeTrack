@@ -3,16 +3,19 @@ using HomeTrack.Application.Interface;
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Domain.Enum; // For Role enum
+using Microsoft.Extensions.Logging;
 
 namespace HomeTrack.Application.Services
 {
     public class StatisticsService : IStatisticsService
     {
         private readonly ApplicationDBContext _context;
+        private readonly ILogger<StatisticsService> _logger;
 
-        public StatisticsService(ApplicationDBContext context)
+        public StatisticsService(ApplicationDBContext context, ILogger<StatisticsService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         private DateTime GetStartDate(string timeframe)
@@ -37,16 +40,20 @@ namespace HomeTrack.Application.Services
 
         private async Task<ServiceResult<bool>> CheckPremiumUser(int userId)
         {
-            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                return ServiceResult<bool>.Failure("Người dùng không tồn tại.");
-            }
-            if (user.Role != Role.Premium)
-            {
-                return ServiceResult<bool>.Failure("Tính năng này chỉ dành cho người dùng Premium.");
-            }
+            // Tạm thời bỏ qua kiểm tra người dùng Premium cho mục đích phát triển
             return ServiceResult<bool>.Success(true);
+
+            // Logic gốc (đã comment):
+            // var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            // if (user == null)
+            // {
+            //     return ServiceResult<bool>.Failure("Người dùng không tồn tại.");
+            // }
+            // if (user.Role != Role.Premium)
+            // {
+            //     return ServiceResult<bool>.Failure("Tính năng này chỉ dành cho người dùng Premium.");
+            // }
+            // return ServiceResult<bool>.Success(true);
         }
 
         public async Task<ServiceResult<UsageStatsResponseDto>> GetItemUsageStatsAsync(string timeframe, int userId)
@@ -67,9 +74,14 @@ namespace HomeTrack.Application.Services
                                                  .Select(g => new { Action = g.Key, Count = g.Count() })
                                                  .ToDictionaryAsync(x => x.Action.ToString(), x => x.Count);
 
+                var totalLocations = await _context.Locations.Where(l => l.UserId == userId).CountAsync();
+
+                _logger.LogInformation($"Total locations for user {userId}: {totalLocations}");
+
                 var responseDto = new UsageStatsResponseDto
                 {
-                    ActionCounts = actionCounts
+                    ActionCounts = actionCounts,
+                    TotalLocations = totalLocations
                 };
 
                 return ServiceResult<UsageStatsResponseDto>.Success(responseDto);

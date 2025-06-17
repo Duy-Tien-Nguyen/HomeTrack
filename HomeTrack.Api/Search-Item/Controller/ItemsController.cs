@@ -149,5 +149,31 @@ public class ItemsController : ControllerBase
 
         return Ok(result.Data);
     }
+
+    [Authorize]
+    [HttpGet("getAll")]
+    public async Task<IActionResult> GetAllItems()
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+        {
+            return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
+        }
+
+        var result = await _itemService.GetAllItemsAsync(userId);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        if (result.Data == null || !result.Data.Any())
+        {
+            return Ok(new List<ItemViewModel>()); // Return empty list if no items
+        }
+
+        return Ok(result.Data);
+    }
 }
 }

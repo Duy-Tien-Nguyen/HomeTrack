@@ -2,6 +2,7 @@ using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Application.AcprojSupport; // Namespace của Validation.cs
 using Microsoft.Extensions.Logging; // Cho ILogger
+using System.IO; // Thêm dòng này để sử dụng Path.Combine
 
 DotNetEnv.Env.Load(); // Nếu bạn dùng .env
 
@@ -32,6 +33,8 @@ var app = builder.Build();
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>(); // Hoặc app.Logger nếu .NET 7+
 appLogger.LogInformation("Application configured. Starting HTTP request pipeline...");
 
+// Thêm middleware phục vụ static files (chỉ giữ lại một dòng này)
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {

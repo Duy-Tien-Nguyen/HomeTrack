@@ -84,6 +84,9 @@ namespace HomeTrack.Application.Services
                 var locations = await _context.Locations
                                               .Where(l => l.UserId == userId)
                                               .OrderBy(l => l.Name) // Sắp xếp theo tên
+                                              .Include(l => l.Items)
+                                                  .ThenInclude(i => i.ItemTags)
+                                                      .ThenInclude(it => it.Tag) // Bao gồm cả Tags của Item
                                               .Select(l => new LocationResponseDto
                                               {
                                                   Id = l.Id,
@@ -91,7 +94,19 @@ namespace HomeTrack.Application.Services
                                                   Description = l.Description,
                                                   ParentLocationId = l.ParentLocationId,
                                                   CreatedAt = l.CreatedAt,
-                                                  UpdatedAt = l.UpdatedAt
+                                                  UpdatedAt = l.UpdatedAt,
+                                                  Items = l.Items.Where(item => item.DeletedAt == null) // Chỉ lấy các item chưa bị xóa mềm
+                                                               .Select(item => new ItemViewModel
+                                                               {
+                                                                   Id = item.Id,
+                                                                   Name = item.Name,
+                                                                   Description = item.Description,
+                                                                   ImageUrl = item.ImageUrl,
+                                                                   LocationId = item.LocationId,
+                                                                   Tags = item.ItemTags != null ? item.ItemTags.Select(it => it.Tag.Name).ToList() : new List<string>(),
+                                                                   CreatedAt = item.CreatedAt,
+                                                                   Color = item.Color
+                                                               }).ToList()
                                               })
                                               .ToListAsync();
 

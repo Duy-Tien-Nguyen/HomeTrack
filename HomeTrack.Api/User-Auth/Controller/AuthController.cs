@@ -91,7 +91,7 @@ namespace HomeTrack.Api.Controllers
         return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
       }
 
-      var success = await _authService.ResetPassword(userId, req.newPassword);
+      var success = await _authService.ResetPassword(userId, req.oldPassword, req.newPassword);
       if (!success)
       {
         return BadRequest(new { message = "Đổi mật khẩu thất bại." });

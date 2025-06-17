@@ -7,7 +7,7 @@ namespace HomeTrack.Api.Controller
 {
     [ApiController]
     [Route("api/statistics")]
-    [Authorize] // Yêu cầu xác thực cho tất cả các endpoint thống kê
+    // [Authorize] // Yêu cầu xác thực cho tất cả các endpoint thống kê
     public class StatisticsController : ControllerBase
     {
         private readonly IStatisticsService _statisticsService;

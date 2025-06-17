@@ -93,19 +93,22 @@ namespace HomeTrack.Application.Services
 
     }
 
-    public async Task<bool> ResetPassword(int userId, string newPassword)
+    public async Task<bool> ResetPassword(int userId, string oldPassword, string newPassword)
     {
       var user = await _userRepo.GetByIdAsync(userId);
-      if (user != null)
-      {
-        user.Password = _passwordHasher.HashPassword(user, newPassword);
-        await _userRepo.SaveChangesAsync();
-        return true;
-      }
-      else
+      if (user == null)
       {
         throw new InvalidOperationException("Người dùng không tồn tại.");
       }
+
+      if (_passwordHasher.VerifyHashedPassword(user, user.Password, oldPassword) == PasswordVerificationResult.Failed)
+      {
+        return false; // Mật khẩu cũ không đúng
+      }
+
+      user.Password = _passwordHasher.HashPassword(user, newPassword);
+      await _userRepo.SaveChangesAsync();
+      return true;
     }
 
     public Task<bool> ForgotPassword(string token, string email, string newPassword)

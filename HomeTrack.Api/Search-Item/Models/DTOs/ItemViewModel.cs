@@ -10,5 +10,6 @@ namespace HomeTrack.Api.Request
         public List<string>? Tags { get; set; }
         public required DateTime CreatedAt { get; set; }
         public string? Color { get; set; }
+        public LocationResponseDto? Location { get; set; }
     }
 }

@@ -1,3 +1,5 @@
+using HomeTrack.Application.Services;
+
 namespace HomeTrack.Api.Request
 {
     public class LocationResponseDto
@@ -8,5 +10,6 @@ namespace HomeTrack.Api.Request
         public int? ParentLocationId { get; set; }
         public required DateTime CreatedAt { get; set; }
         public required DateTime UpdatedAt { get; set; }
+        public ICollection<ItemViewModel>? Items { get; set; }
     }
 }

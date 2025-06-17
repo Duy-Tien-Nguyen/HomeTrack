@@ -161,7 +161,17 @@ public class ItemService : IItemService
                 LocationId = item.LocationId,
                 Tags = tags,
                 CreatedAt = item.CreatedAt,
-                Color = item.Color 
+                Color = item.Color,
+                Location = item.Location != null ? new LocationResponseDto
+                {
+                    Id = item.Location.Id,
+                    Name = item.Location.Name,
+                    Description = item.Location.Description,
+                    ParentLocationId = item.Location.ParentLocationId,
+                    CreatedAt = item.Location.CreatedAt,
+                    UpdatedAt = item.Location.UpdatedAt,
+                    Items = null
+                } : null
             };
 
             return ServiceResult<ItemViewModel>.Success(itemViewModel);
@@ -319,7 +329,17 @@ public class ItemService : IItemService
                 LocationId = existingItem.LocationId,
                 Tags = tagsForViewModel,
                 CreatedAt = existingItem.CreatedAt,
-                Color = existingItem.Color
+                Color = existingItem.Color,
+                Location = existingItem.Location != null ? new LocationResponseDto
+                {
+                    Id = existingItem.Location.Id,
+                    Name = existingItem.Location.Name,
+                    Description = existingItem.Location.Description,
+                    ParentLocationId = existingItem.Location.ParentLocationId,
+                    CreatedAt = existingItem.Location.CreatedAt,
+                    UpdatedAt = existingItem.Location.UpdatedAt,
+                    Items = null
+                } : null
             };
 
 
@@ -420,7 +440,17 @@ public class ItemService : IItemService
                 LocationId = item.LocationId,
                 Tags = item.ItemTags?.Select(it => it.Tag.Name).ToList(),
                 CreatedAt = item.CreatedAt,
-                Color = item.Color
+                Color = item.Color,
+                Location = item.Location != null ? new LocationResponseDto
+                {
+                    Id = item.Location.Id,
+                    Name = item.Location.Name,
+                    Description = item.Location.Description,
+                    ParentLocationId = item.Location.ParentLocationId,
+                    CreatedAt = item.Location.CreatedAt,
+                    UpdatedAt = item.Location.UpdatedAt,
+                    Items = null
+                } : null
             }).ToList();
 
             return ServiceResult<IEnumerable<ItemViewModel>>.Success(itemViewModels);
@@ -428,6 +458,47 @@ public class ItemService : IItemService
         catch (Exception ex)
         {
             return ServiceResult<IEnumerable<ItemViewModel>>.Failure($"Đã có lỗi xảy ra khi lấy danh sách đồ vật theo vị trí: {ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResult<IEnumerable<ItemViewModel>>> GetAllItemsAsync(int userId)
+    {
+        try
+        {
+            var items = await _context.Items
+                                    .Where(i => i.UserId == userId && i.DeletedAt == null)
+                                    .Include(i => i.Location)
+                                    .Include(i => i.ItemTags)
+                                        .ThenInclude(it => it.Tag)
+                                    .ToListAsync();
+
+            var itemViewModels = items.Select(item => new ItemViewModel
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                ImageUrl = item.ImageUrl,
+                LocationId = item.LocationId,
+                Tags = item.ItemTags?.Select(it => it.Tag.Name).ToList(),
+                CreatedAt = item.CreatedAt,
+                Color = item.Color,
+                Location = item.Location != null ? new LocationResponseDto
+                {
+                    Id = item.Location.Id,
+                    Name = item.Location.Name,
+                    Description = item.Location.Description,
+                    ParentLocationId = item.Location.ParentLocationId,
+                    CreatedAt = item.Location.CreatedAt,
+                    UpdatedAt = item.Location.UpdatedAt,
+                    Items = null
+                } : null
+            });
+
+            return ServiceResult<IEnumerable<ItemViewModel>>.Success(itemViewModels);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<IEnumerable<ItemViewModel>>.Failure($"Đã có lỗi xảy ra trong quá trình lấy tất cả đồ vật: {ex.Message}");
         }
     }
 }

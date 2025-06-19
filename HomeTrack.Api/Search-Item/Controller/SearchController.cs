@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using HomeTrack.Api.Request;
 
 
-namespace HomeTrack.Api.Controller
+namespace HomeTrack.Api.Controllers
 {
   [ApiController]
   [Route("api/search")]

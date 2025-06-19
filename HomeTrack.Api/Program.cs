@@ -16,6 +16,17 @@ builder.Services.AddEndpointsApiExplorer(); // Chỉ gọi một lần
 builder.ValidateService(); // Giả sử đây là nơi AddAuthentication().AddJwtBearer() được cấu hình
 builder.Services.ConfigureServices(); // Đảm bảo bạn biết rõ phương thức này làm gì
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 // Cấu hình DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
@@ -63,7 +74,8 @@ else
     app.UseHsts();
 }
 
-// app.UseHttpsRedirection(); // Bật nếu bạn dùng HTTPS
+app.UseCors("AllowAll");
+
 
 app.UseRouting();
 

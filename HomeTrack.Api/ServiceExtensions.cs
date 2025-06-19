@@ -30,6 +30,8 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<ISearchService, SearchService>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IStatsReportRepository, StatsReportRepository>();
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
 
 
 

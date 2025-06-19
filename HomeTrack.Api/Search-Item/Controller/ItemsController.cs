@@ -4,7 +4,7 @@ using HomeTrack.Application.Interface;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 
-namespace HomeTrack.Api.Controller
+namespace HomeTrack.Api.Controllers
 {
     [ApiController]
     [Route("api/items")]

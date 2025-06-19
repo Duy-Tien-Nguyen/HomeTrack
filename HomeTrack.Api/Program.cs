@@ -28,26 +28,39 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 var app = builder.Build();
 
+app.MapGet("/", () => "HomeTrack is running");
 
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>(); // Hoặc app.Logger nếu .NET 7+
 appLogger.LogInformation("Application configured. Starting HTTP request pipeline...");
 
+app.UseDefaultFiles();
+app.UseStaticFiles(); 
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); 
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "HomeTrack API v1");
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = "swagger";
     });
-    appLogger.LogInformation("Swagger UI configured for Development environment.");
+}
+else if (app.Environment.IsProduction())
+{
+    app.UseSwagger(); // Production vẫn có thể bật Swagger nếu bạn muốn
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "HomeTrack API v1");
+        c.RoutePrefix = "swagger";
+    });
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 else
 {
-    // app.UseExceptionHandler("/Error");
-    // app.UseHsts();
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 
 // app.UseHttpsRedirection(); // Bật nếu bạn dùng HTTPS

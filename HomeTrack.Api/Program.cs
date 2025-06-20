@@ -16,14 +16,16 @@ builder.Services.AddEndpointsApiExplorer(); // Chỉ gọi một lần
 builder.ValidateService(); // Giả sử đây là nơi AddAuthentication().AddJwtBearer() được cấu hình
 builder.Services.ConfigureServices(); // Đảm bảo bạn biết rõ phương thức này làm gì
 
+// Cấu hình CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowSpecificOrigin", policy => // Đổi tên policy để phản ánh mục đích cụ thể hơn
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins("http://localhost:3000") // Chỉ định nguồn gốc cụ thể
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials(); // Thêm để hỗ trợ gửi cookie/header ủy quyền
     });
 });
 
@@ -45,7 +47,7 @@ var appLogger = app.Services.GetRequiredService<ILogger<Program>>(); // Hoặc a
 appLogger.LogInformation("Application configured. Starting HTTP request pipeline...");
 
 app.UseDefaultFiles();
-app.UseStaticFiles(); 
+app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -74,7 +76,7 @@ else
     app.UseHsts();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigin"); // Sử dụng tên policy đã đổi
 
 
 app.UseRouting();

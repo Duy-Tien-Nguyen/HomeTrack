@@ -1,7 +1,8 @@
 using HomeTrack.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Application.AcprojSupport; // Namespace của Validation.cs
-using Microsoft.Extensions.Logging; // Cho ILogger
+using HomeTrack.Application.Services;
+using HomeTrack.Application.Interface;
 
 DotNetEnv.Env.Load(); // Nếu bạn dùng .env
 
@@ -10,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Chỉ gọi một lần
-
+builder.Services.AddHttpClient<IGoogleAIStudioModerationService, GoogleAIStudioModerationService>();
 
 // Gọi các phương thức mở rộng tùy chỉnh của bạn
 builder.ValidateService(); // Giả sử đây là nơi AddAuthentication().AddJwtBearer() được cấu hình

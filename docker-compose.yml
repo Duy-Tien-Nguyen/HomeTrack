@@ -27,12 +27,16 @@ services:
       - "8001:8001"
     container_name: hometrack_api_container
     restart: unless-stopped
+    volumes:
+      - hometrack_uploads:/app/wwwroot/uploads
     networks:
       - hometrack-network
 
 
 volumes:
   postgres_data:
+  hometrack_uploads:
+    driver: local
 
 networks:
   hometrack-network:

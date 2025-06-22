@@ -32,6 +32,8 @@ namespace HomeTrack.Application.AcprojSupport
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<IStatsReportRepository, StatsReportRepository>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
+            services.AddScoped<IGoogleAIStudioModerationService, GoogleAIStudioModerationService>();
+            services.AddScoped<IModerationRepository, ModeratedRepository>();
 
 
 

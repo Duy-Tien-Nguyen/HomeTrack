@@ -175,10 +175,12 @@ namespace HomeTrack.Api.Controllers
 
             var item = await _itemService.GetItemByIdAsync(id, userId);
 
-            if (!item.IsSuccess || item.Data == null)
+            if (!item.IsSuccess || item.Data == null || string.IsNullOrEmpty(item.Data.ImageUrl))
             {
-                return NotFound(new { message = "Đồ vật này không có hình ảnh." });
+                return NotFound(new { message = "Đồ vật này không có hình ảnh hoặc không tìm thấy." });
             }
+
+            var itemData = item.Data;
 
             var imagePath = Path.Combine(_hostEnvironment.WebRootPath) ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var filePath = Path.Combine(imagePath, item.Data.ImageUrl.TrimStart('/'));

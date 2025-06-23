@@ -242,7 +242,9 @@ namespace HomeTrack.Application.Services
                     LocationId = item.LocationId,
                     Tags = tags,
                     CreatedAt = item.CreatedAt,
-                    Color = item.Color
+                    Color = item.Color,
+                    ModerationStatus = item.ImageModerationStatus,
+                    // ModerationNote = item.ModerationNote
                 };
 
                 return ServiceResult<ItemViewModel>.Success(itemViewModel);
@@ -571,7 +573,7 @@ namespace HomeTrack.Application.Services
                     CreatedAt = item.CreatedAt,
                     Color = item.Color,
                     ModerationStatus = item.ImageModerationStatus,
-                    ModerationNote = item.ModerationNote
+                    // ModerationNote = item.ModerationNote
                 }).ToList();
 
                 return ServiceResult<IEnumerable<ItemViewModel>>.Success(itemViewModels);

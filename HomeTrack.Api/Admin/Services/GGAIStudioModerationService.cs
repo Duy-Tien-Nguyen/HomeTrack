@@ -170,6 +170,149 @@ namespace HomeTrack.Application.Services
       }
     }
 
+    public async Task<AISuggestedTagResult> SuggestTagsForImageAsync(Stream imageStream, string mimeType, string? itemContextText = null)
+    {
+      var requestUrl = $"{BaseUrl}{_modelName}:generateContent?key={_apiKey}";
+      var contentParts = new List<object>();
+
+      var promptBuilder = new StringBuilder();
+      promptBuilder.AppendLine("Phân tích hình ảnh sau và gợi ý một danh sách các tag (từ khóa) mô tả các đối tượng, cảnh vật, hoặc khái niệm chính trong ảnh. Trả lời bằng tiếng Việt.");
+      promptBuilder.AppendLine("Chỉ trả lời bằng một đối tượng JSON với một trường duy nhất là \"suggestedTags\", là một mảng các chuỗi tag (không có markdown code block ```json ... ``` bao quanh):");
+      promptBuilder.AppendLine("{ \"suggestedTags\": [\"tag1\", \"tag2\", \"tag3\", ...] }");
+      if (!string.IsNullOrEmpty(itemContextText))
+      {
+        promptBuilder.AppendLine($"\nNgữ cảnh bổ sung (tên đồ vật, mô tả): \"{itemContextText}\"");
+      }
+      contentParts.Add(new { text = promptBuilder.ToString() });
+
+      if (imageStream == null || imageStream.Length == 0)
+      {
+        return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = "Dữ liệu ảnh (stream) không được để trống." };
+      }
+      if (string.IsNullOrEmpty(mimeType))
+      {
+        return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = "Mime type của ảnh là bắt buộc." };
+      }
+
+      try
+      {
+        // Đọc Stream thành byte array rồi chuyển sang Base64
+        using var memoryStream = new MemoryStream();
+        await imageStream.CopyToAsync(memoryStream); // Đảm bảo imageStream được truyền vào có thể đọc được
+        memoryStream.Position = 0; // Reset vị trí stream nếu nó đã được đọc trước đó
+        byte[] imageBytes = memoryStream.ToArray();
+        string base64Image = Convert.ToBase64String(imageBytes);
+
+        contentParts.Add(new { inlineData = new { mimeType = mimeType, data = base64Image } });
+        Console.WriteLine($"Đã thêm ảnh từ stream vào payload để gợi ý tag. MimeType: {mimeType}");
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Lỗi khi xử lý image stream để gợi ý tag: {ex.Message}");
+        return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = $"Lỗi xử lý dữ liệu ảnh: {ex.Message}" };
+      }
+
+      var payload = new
+      {
+        contents = new[] { new { parts = contentParts.ToArray() } },
+        generationConfig = new { temperature = 0.4, maxOutputTokens = 256 }
+      };
+
+      var jsonPayload = JsonSerializer.Serialize(payload);
+      var httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+      try
+      {
+        var response = await _httpClient.PostAsync(requestUrl, httpContent);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode)
+        {
+          using var jsonDoc = JsonDocument.Parse(responseString);
+          JsonElement candidates = default;
+          if (jsonDoc.RootElement.TryGetProperty("candidates", out candidates) && candidates.ValueKind == JsonValueKind.Array && candidates.GetArrayLength() > 0)
+          {
+            var firstCandidate = candidates[0];
+            if (firstCandidate.TryGetProperty("finishReason", out var finishReasonElement) && finishReasonElement.GetString() == "SAFETY")
+            {
+              // Xử lý nếu bị bộ lọc an toàn chặn
+              string safetyFeedback = "Nội dung bị chặn bởi bộ lọc an toàn của AI khi gợi ý tag. ";
+              if (firstCandidate.TryGetProperty("safetyRatings", out var safetyRatingsElement) && safetyRatingsElement.ValueKind == JsonValueKind.Array)
+              {
+                foreach (var rating in safetyRatingsElement.EnumerateArray())
+                {
+                  var category = rating.TryGetProperty("category", out var catEl) ? catEl.GetString() : "UNKNOWN_CATEGORY";
+                  var probability = rating.TryGetProperty("probability", out var probEl) ? probEl.GetString() : "UNKNOWN_PROBABILITY";
+                  safetyFeedback += $"{category}: {probability}. ";
+                }
+              }
+              return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = safetyFeedback.Trim(), RawApiResponse = responseString };
+            }
+
+            if (firstCandidate.TryGetProperty("content", out var contentElement) &&
+                contentElement.TryGetProperty("parts", out var partsElement) &&
+                partsElement.ValueKind == JsonValueKind.Array && partsElement.GetArrayLength() > 0)
+            {
+              var textPart = partsElement[0].TryGetProperty("text", out var textElement) ? textElement.GetString() : null;
+              if (!string.IsNullOrEmpty(textPart))
+              {
+                try
+                {
+                  var cleanedJsonText = textPart.Trim().TrimStart('`', 'j', 's', 'o', 'n').TrimEnd('`').Trim();
+                  var tempResult = JsonSerializer.Deserialize<TemporaryTagSuggestionResponse>(cleanedJsonText,
+                      new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                  if (tempResult?.SuggestedTags != null)
+                  {
+                    return new AISuggestedTagResult { IsSuccess = true, SuggestedTags = tempResult.SuggestedTags, RawApiResponse = textPart };
+                  }
+                }
+                catch (JsonException jsonEx)
+                {
+                  Console.WriteLine($"Lỗi parse JSON gợi ý tag: {jsonEx.Message}. Response text: {textPart}");
+                  return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = $"Lỗi định dạng JSON từ AI: {textPart}", RawApiResponse = responseString };
+                }
+              }
+            }
+          }
+          Console.WriteLine($"Không tìm thấy nội dung hợp lệ trong phản hồi của Google AI Studio cho gợi ý tag: {responseString}");
+          return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = "Không có nội dung hợp lệ từ AI Studio cho gợi ý tag.", RawApiResponse = responseString };
+        }
+        else
+        {
+          string detailedError = ExtractErrorMessage(responseString) ?? $"Lỗi API: {response.StatusCode}";
+          Console.WriteLine($"Lỗi từ Google AI Studio API (gợi ý tag): {response.StatusCode} - {detailedError}");
+          return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = detailedError, RawApiResponse = responseString };
+        }
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Lỗi ngoại lệ khi gọi Google AI Studio API (gợi ý tag): {ex.ToString()}");
+        return new AISuggestedTagResult { IsSuccess = false, ErrorMessage = $"Lỗi hệ thống: {ex.Message}", RawApiResponse = ex.ToString() };
+      }
+    }
+
+    // Lớp tạm thời để deserialize phản hồi JSON cho gợi ý tag
+    private class TemporaryTagSuggestionResponse
+    {
+      public List<string>? SuggestedTags { get; set; }
+    }
+
+    private string? ExtractErrorMessage(string jsonResponse)
+    {
+      try
+      {
+        using var jsonDoc = JsonDocument.Parse(jsonResponse);
+        if (jsonDoc.RootElement.TryGetProperty("error", out var errorElement) &&
+            errorElement.TryGetProperty("message", out var messageElement))
+        {
+          return messageElement.GetString();
+        }
+      }
+      catch { /* Bỏ qua */ }
+      return null;
+    }
+
     private string GetMimeType(string filePath)
     {
       var extension = Path.GetExtension(filePath).ToLowerInvariant();

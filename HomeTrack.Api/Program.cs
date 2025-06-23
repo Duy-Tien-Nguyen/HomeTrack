@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using HomeTrack.Application.AcprojSupport; // Namespace của Validation.cs
 using HomeTrack.Application.Services;
 using HomeTrack.Application.Interface;
+using Hangfire;
+using Hangfire.MemoryStorage;
 
-DotNetEnv.Env.Load(); // Nếu bạn dùng .env
+DotNetEnv.Env.Load(); 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,9 +15,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer(); // Chỉ gọi một lần
 builder.Services.AddHttpClient<IGoogleAIStudioModerationService, GoogleAIStudioModerationService>();
 
-// Gọi các phương thức mở rộng tùy chỉnh của bạn
 builder.ValidateService(); // Giả sử đây là nơi AddAuthentication().AddJwtBearer() được cấu hình
-builder.Services.ConfigureServices(); // Đảm bảo bạn biết rõ phương thức này làm gì
+builder.Services.ConfigureServices(); 
+
+builder.Services.AddHangfire(config =>
+{
+    config.UseMemoryStorage();
+});
+builder.Services.AddHangfireServer();
 
 builder.Services.AddCors(options =>
 {
@@ -47,6 +54,14 @@ appLogger.LogInformation("Application configured. Starting HTTP request pipeline
 
 app.UseDefaultFiles();
 app.UseStaticFiles(); 
+
+app.UseHangfireDashboard();
+
+RecurringJob.AddOrUpdate<ISubscriptionService>(
+    "CheckExpiredSubscriptions",
+    x => x.HandleExpiredSubscriptionsAsync(),
+    Cron.Daily
+);
 
 if (app.Environment.IsDevelopment())
 {

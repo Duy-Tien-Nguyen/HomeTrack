@@ -11,8 +11,17 @@ namespace HomeTrack.Application.Interface
     public string? RawApiResponse { get; set; }
   }
 
+  public class AISuggestedTagResult
+  {
+    public bool IsSuccess { get; set; }
+    public List<string> SuggestedTags { get; set; } = new List<string>();
+    public string? ErrorMessage { get; set; }
+    public string? RawApiResponse { get; set; }
+  }
+
   public interface IGoogleAIStudioModerationService
   {
     Task<AIStudioModerationResult> ModerateItemContentAsync(Item item, IEnumerable<Tag> associatedTags);
+    Task<AISuggestedTagResult> SuggestTagsForImageAsync(Stream imageStream, string mimeType, string? itemContextText = null);
   }
 }

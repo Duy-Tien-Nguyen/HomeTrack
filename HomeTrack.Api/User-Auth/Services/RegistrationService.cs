@@ -2,7 +2,6 @@ using HomeTrack.Application.Interface;
 using HomeTrack.Domain;
 using HomeTrack.Domain.Enum;
 using HomeTrack.Infrastructure.Data;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 
 namespace HomeTrack.Application.Services

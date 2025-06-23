@@ -1,0 +1,133 @@
+@startuml Auth
+
+' --- Domain Entities ---
+package "Domain Entities" {
+    class User {
+        +int Id
+        +String Email
+        +String Password
+        +String FirstName
+        +String LastName
+        +Role role
+        +string RefreshToken
+        +UserStatus status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    enum Role {
+        basic
+        premium
+        admin
+    }
+
+    enum UserStatus {
+        Active
+        Banned
+        Pending
+    }
+
+    class ConfirmationToken {
+        +int Id
+        +int UserId
+        +String Token
+        +DateTime ExpiresAt
+        +boolean Used
+    }
+}
+
+' --- Application / Domain Services ---
+package "Application / Domain Services" {
+    class RegistrationService {
+        -IUserRepository _userRepo;
+        -ApplicationDBContext _context;
+        -ITokenService _tokenService;
+        -IEmailService _emailService;
+        -IPasswordHasher<User> _passwordHasher;
+        +RegisterAsync(string email, string password, string firstName, string lastName): void
+        +VerifyOTP(string email, string token): boolean
+        +ResendOTP(string email): boolean
+        --
+        ' Dependencies will be drawn from this service to repositories/other services'
+    }
+
+    class EmailService {
+        +sendOTPEmail(email: String, token: String): boolean
+    }
+
+    class AuthService {
+        -IUserRepository _userRepo
+        -IPasswordHasher<User> _passwordHasher
+        -JwtService _jwtService
+        -ITokenService _tokenService
+        +LoginAsync(LoginRequest req): LoginResponseDto
+        +LogoutAsync(int userId): boolean
+        +GetAccessToken(string userId, string email, string role): AccessTokenString
+        +ResetPassword(int userId, string newPassword)
+        +ForgotPassword(string token, string email, string newPassword): boolean
+        +GetProfile(int userId): UserDto
+    }
+
+    class JwtService {
+        +GenerateAccessToken(User user): string
+        +GenerateRefreshToken(User user): string
+        +ValidateToken(string token): ClaimsPrincipal
+    }
+    class TokenService{
+        -ITokenRepository _tokenRepo;
+        +CreateTokenAsync(int userId): string
+        +VerifyTokenAsync(int userId, string token): boolean
+        +RevokeAllUserOTP(int userId): void
+    }
+}
+
+' --- Infrastructure Layer (Repositories) ---
+package "Infrastructure Layer (Repositories)" {
+    class UserRepository{
+        -ApplicationDBContext _context
+        +GetByIdAsync(int id)
+        +ActivateUserAsync(int id)
+        +GetByEmailAsync(string email)
+        +AddAsync(User user)
+        +Update(User user)
+        +GetAllAsync()
+        +SaveChangeAsync()
+    }
+
+    class TokenRepository {
+        -ApplicationDBContext _context
+        +AddAsync(ConfirmationToken token)
+        +GetByUserIdAndTokenAsync(int userId, string token)
+        +MarkAsUsedAsync(int tokenId)
+        +InvalidateActiveOtpTokensForUserAsync(int userId)
+        +SaveChangesAsync()
+    }
+
+    class ApplicationDBContext {
+        ' Represents the database context'
+    }
+}
+
+' --- Relationships ---
+
+' Domain Model relationships
+User "1" -- "0..*" ConfirmationToken : Có token
+User --> Role
+User --> UserStatus
+
+' Service Layer Dependencies
+RegistrationService ..> EmailService : Gửi OTP
+RegistrationService ..> UserRepository : Quản lý User
+RegistrationService ..> TokenRepository : Quản lý Token
+
+' AuthService Dependencies
+AuthService ..> UserRepository : Sử dụng User Repo
+AuthService ..> PasswordHasher : Hash/Verify Pass
+AuthService ..> JwtService : Tạo/Xác thực JWT
+AuthService ..> TokenService : Quản lý Token OTP
+
+' Repository Dependencies
+UserRepository .right.> ApplicationDBContext : Sử dụng Context
+TokenRepository .right.> ApplicationDBContext : Sử dụng Context
+
+@enduml

@@ -1,6 +1,7 @@
 using HomeTrack.Application.Interface;
 using HomeTrack.Domain;
 using HomeTrack.Api.Request;
+using HomeTrack.Domain.Enum;
 
 namespace HomeTrack.Application.Services
 {
@@ -218,6 +219,32 @@ namespace HomeTrack.Application.Services
       {
         _logger.LogError(ex, "Error occurred while activating subscription with ID: {SubscriptionId}", id);
         return false;
+      }
+    }
+
+    public async Task HandleExpiredSubscriptionsAsync()
+    {
+      var now = DateTime.UtcNow;
+      var subscriptions = await _subscriptionRepository.GetAllAsync();
+
+      foreach (var sub in subscriptions)
+      {
+        if (sub.Status != SubscriptionStatus.Active) { continue; }
+        if (sub.EndsAt < now)
+        {
+          sub.Status = SubscriptionStatus.Expired;
+          sub.UpdatedAt = now;
+          await _subscriptionRepository.UpdateAsync(sub);
+
+          var user = await _userReposotory.GetByIdAsync(sub.UserId);
+          if (user != null)
+          {
+            user.Role = Role.Basic;
+            await _userReposotory.SaveChangesAsync();
+          }
+
+          _logger.LogInformation("Đã hạ role của User ID {UserId} vì gói đã hết hạn", sub.UserId);
+        }
       }
     }
   }

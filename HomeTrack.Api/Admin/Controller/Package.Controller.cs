@@ -7,7 +7,6 @@ namespace HomeTrack.Api.Controllers
 {
   [ApiController]
   [Route("api/packages")]
-  [Authorize(Roles = "Admin")]
   public class PackageController : ControllerBase
   {
     private readonly IPackageService _packageService;
@@ -18,6 +17,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> GetPackageById(int id)
     {
       try
@@ -34,6 +34,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpGet("all")]
+    [Authorize]
     public async Task<IActionResult> GetAllPackages()
     {
       try
@@ -50,6 +51,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpPost("create")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreatePackage([FromBody] CreatePackageDto packageDto)
     {
       try
@@ -70,6 +72,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpPut("update")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePackage(int id, [FromBody] UpdatePackageDto packageDto)
     {
       try
@@ -90,6 +93,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpDelete("delete")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePackage(int id)
     {
       try
@@ -107,6 +111,7 @@ namespace HomeTrack.Api.Controllers
     }
 
     [HttpPost("toggle-status")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> TogglePackageStatus(int id)
     {
       try

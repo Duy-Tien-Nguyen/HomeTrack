@@ -3,6 +3,7 @@ using HomeTrack.Api.Request;
 using HomeTrack.Application.Interface;
 using System.Security.Claims; 
 using Microsoft.AspNetCore.Authorization; 
+using System.IO;
 
 namespace HomeTrack.Api.Controller
 {
@@ -174,6 +175,40 @@ public class ItemsController : ControllerBase
         }
 
         return Ok(result.Data);
+    }
+
+    [Authorize]
+    [HttpGet("{id}/image")]
+    public async Task<IActionResult> GetItemImage(int id)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+        {
+            return Unauthorized(new { message = "Không thể xác định người dùng từ token." });
+        }
+        
+        var result = await _itemService.GetItemByIdAsync(id, userId);
+        if (!result.IsSuccess || result.Data == null || string.IsNullOrEmpty(result.Data.ImageUrl))
+        {
+            return NotFound();
+        }
+
+        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", result.Data.ImageUrl.TrimStart('/'));
+        if (!System.IO.File.Exists(imagePath))
+        {
+            return NotFound();
+        }
+
+        var image = await System.IO.File.ReadAllBytesAsync(imagePath);
+        var contentType = "image/jpeg";
+        if (imagePath.EndsWith(".png")) contentType = "image/png";
+        else if (imagePath.EndsWith(".gif")) contentType = "image/gif";
+        else if (imagePath.EndsWith(".webp")) contentType = "image/webp";
+        else if (imagePath.EndsWith(".bmp")) contentType = "image/bmp";
+        // Có thể bổ sung thêm các loại khác nếu cần
+
+        return File(image, contentType);
     }
 }
 }

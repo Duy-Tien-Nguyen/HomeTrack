@@ -174,7 +174,7 @@ export default function LocationManager() {
   };
 
   const handleItemPress = (itemId: string) => {
-    router.push(`/product-detail?id=${itemId}`);
+    router.push(`/productDetail?id=${itemId}`);
   };
 
   const handleDeleteItem = async (itemId: number) => {
@@ -207,7 +207,7 @@ export default function LocationManager() {
   const handleTabPress = (index: number) => {
     switch(index) {
       case 0: router.push("/dashboard"); break;
-      case 1: router.push("/Search Screen"); break;
+      case 1: router.push("/searchScreen"); break;
       case 2: /* đang ở đây */ break;
       case 3: router.push("/profile"); break;
     }
@@ -221,7 +221,7 @@ export default function LocationManager() {
         <BottomNavigation
           activeTab={2}
           onTabPress={handleTabPress}
-          onAddPress={() => router.push("/add-item")}
+          onAddPress={() => router.push("/addItem")}
         />
       </View>
     );
@@ -235,7 +235,7 @@ export default function LocationManager() {
         <BottomNavigation
           activeTab={2}
           onTabPress={handleTabPress}
-          onAddPress={() => router.push("/add-item")}
+          onAddPress={() => router.push("/addItem")}
         />
       </View>
     );
@@ -361,7 +361,7 @@ export default function LocationManager() {
       <BottomNavigation
         activeTab={2}
         onTabPress={handleTabPress}
-        onAddPress={() => router.push("/add-item")}
+        onAddPress={() => router.push("/addItem")}
       />
     </View>
   );

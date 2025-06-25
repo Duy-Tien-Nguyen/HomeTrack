@@ -15,7 +15,7 @@ import Button from "./components/Button";
 import LinkText from "./components/LinkText";
 import Logo from "./components/Logo";
 import InputField from "./components/InputField";
-import { login, fetchWithAuth } from "./api";
+import { login, fetchWithAuth, getMyProfile } from "./api";
 
 export default function Login() {
   const router = useRouter();
@@ -73,6 +73,17 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", data.accessToken);
       await AsyncStorage.setItem("refreshToken", data.refreshToken);
 
+      // Lấy userId từ profile và lưu vào AsyncStorage
+      try {
+        const profileRes = await getMyProfile();
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData && profileData.id) {
+            await AsyncStorage.setItem("userId", profileData.id.toString());
+          }
+        }
+      } catch (e) { /* ignore */ }
+
       return true;
     } catch (error) {
       setLoading(false);
@@ -126,7 +137,7 @@ export default function Login() {
         />
         <LinkText
           text="Quên mật khẩu?"
-          onPress={() => router.push("/ForgotPassword")}
+          onPress={() => router.push("/forgotPassword")}
           style={styles.forgot}
         />
         <Button title="Đăng nhập" onPress={onLoginPress} loading={loading} />

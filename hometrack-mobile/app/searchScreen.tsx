@@ -15,7 +15,7 @@ import SearchInput from "./components/SearchInput";
 import FilterTags from "./components/FilterTags";
 import SearchResultItem from "./components/SearchResultItem";
 import BottomNavigation from "./components/BottomNavigation";
-import { searchItems, searchAdvanced, fetchWithAuth, itemsDelete, getMyProfile } from "./api";
+import { searchItems, searchAdvanced, fetchWithAuth, itemsDelete, getMyProfile, subscriptionsGetMy } from "./api";
 
 // Tags dùng cho filter
 const mockFilterTags = [
@@ -36,20 +36,25 @@ export default function SearchScreen() {
   const [isPremiumUser, setIsPremiumUser] = useState(false); // New state for premium user status
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchSubscription = async () => {
       try {
-        const response = await getMyProfile();
+        const response = await fetchWithAuth(subscriptionsGetMy);
         if (response.ok) {
-          const userProfile = await response.json();
-          setIsPremiumUser(userProfile.role === "Premium");
+          const data = await response.json();
+          if (data && data.length > 0) {
+            const sub = data[0];
+            setIsPremiumUser(sub.packageName === "Premium" || sub.packageId !== 1);
+          } else {
+            setIsPremiumUser(false);
+          }
         } else {
-          console.error("Failed to fetch user profile:", response.status);
+          setIsPremiumUser(false);
         }
       } catch (error) {
-        console.error("Error fetching user profile:", error);
+        setIsPremiumUser(false);
       }
     };
-    fetchUserProfile();
+    fetchSubscription();
   }, []);
 
   const fetchSearchResults = useCallback(async () => {
@@ -191,7 +196,7 @@ export default function SearchScreen() {
   };
 
   const handleItemPress = (itemId: string) => {
-    router.push(`/product-detail?id=${itemId}`);
+    router.push(`/productDetail?id=${itemId}`);
   };
 
   const handleDeleteItem = async (itemId: number) => {
@@ -212,7 +217,7 @@ export default function SearchScreen() {
   };
 
   const handleAddPress = () => {
-    router.push("/add-item");
+    router.push("/addItem");
   };
 
   const handleTabPress = (index: number) => {
@@ -224,7 +229,7 @@ export default function SearchScreen() {
       case 1:
         break;
       case 2:
-        router.push("/LocationManager");
+        router.push("/locationManager");
         break;
       case 3:
         router.push("/profile");

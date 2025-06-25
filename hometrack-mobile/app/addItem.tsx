@@ -6,7 +6,7 @@ import * as ImagePicker from "expo-image-picker";
 import AppHeader from "./components/AppHeader";
 import InputField from "./components/InputField";
 import Button from "./components/Button";
-import { itemsCreate, fetchWithAuth, locationsGetAll } from "./api";
+import { itemsCreate, fetchWithAuth, locationsGetAll, suggestTagsForImage, getMyProfile } from "./api";
 
 interface LocationType {
   id: string;
@@ -26,13 +26,15 @@ export default function AddItemScreen() {
   const [locations, setLocations] = useState<LocationType[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [color, setColor] = useState(""); // Added color state
+  const [color, setColor] = useState("");
 
   // State lỗi
   const [nameError, setNameError] = useState("");
   const [locationError, setLocationError] = useState("");
-  const [colorError, setColorError] = useState(""); // Added error state for color
+  const [colorError, setColorError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [loadingTags, setLoadingTags] = useState(false);
+  const [isPremium, setIsPremium] = useState<boolean | null>(null);
 
   useEffect(() => {
     const loadLocations = async () => {
@@ -58,6 +60,31 @@ export default function AddItemScreen() {
       }
     };
     loadLocations();
+    // TẠM THỜI: luôn nhận diện là premium để test UI
+  }, []);
+
+  useEffect(() => {
+    const checkPremium = async () => {
+      try {
+        const res = await getMyProfile();
+        const data = await res.json();
+        let premium = false;
+        if (
+          data.subscription &&
+          data.subscription.package &&
+          ["Gói năm", "Gói tháng", "Gói tuần", "Premium"].includes(data.subscription.package.name)
+        ) {
+          premium = true;
+        }
+        if (data.role && ["Premium", "premium"].includes(data.role)) {
+          premium = true;
+        }
+        setIsPremium(premium);
+      } catch (e) {
+        setIsPremium(false);
+      }
+    };
+    checkPremium();
   }, []);
 
   const pickImage = async () => {
@@ -66,10 +93,25 @@ export default function AddItemScreen() {
       allowsEditing: true,
       quality: 0.7,
     });
-
     if (!result.canceled) {
       const assets = (result as any).assets;
-      if (assets?.length) setImageUri(assets[0].uri);
+      if (assets?.length) {
+        setImageUri(assets[0].uri);
+        if (isPremium) {
+          setLoadingTags(true);
+          try {
+            let context = `Tên: ${name || ""}. Mô tả: ${description || ""}. Vị trí: ${selectedLocation?.name || ""}. Màu sắc: ${color || ""}. Gợi ý 3 tag phù hợp nhất.`;
+            const aiTags = await suggestTagsForImage(assets[0].uri, context);
+            if (Array.isArray(aiTags) && aiTags.length > 0) {
+              setTags(aiTags.slice(0, 3));
+            }
+          } catch (e: any) {
+            Alert.alert("Không lấy được gợi ý tag từ AI", e.message || "");
+          } finally {
+            setLoadingTags(false);
+          }
+        }
+      }
     }
   };
 
@@ -124,8 +166,6 @@ export default function AddItemScreen() {
       // Send POST request to create the item
       const response = await fetchWithAuth(itemsCreate, {
         method: "POST",
-        headers: {
-        },
         body: formData,
       });
 
@@ -201,6 +241,8 @@ export default function AddItemScreen() {
             setTags(text.split(",").map((t) => t.trim()))
           }
         />
+
+        {loadingTags && <Text style={{color:'#888',marginBottom:8}}>Đang lấy gợi ý tag từ AI...</Text>}
 
         <TouchableOpacity
           onPress={() => setShowLocationModal(true)}

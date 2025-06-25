@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView, StyleSheet, Text, Image, TouchableOpacity, Alert, Modal, FlatList, Keyboard } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppHeader from "./components/AppHeader";
 import InputField from "./components/InputField";
 import Button from "./components/Button";
-import { fetchWithAuth, itemsGetById, itemsUpdate, locationsGetById, baseUrl, port, locationsGetAll } from "./api";
+import { fetchWithAuth, itemsGetById, itemsUpdate, locationsGetById, baseUrl, port, locationsGetAll, itemImage } from "./api";
 
 interface LocationType {
   id: number;
@@ -24,6 +25,7 @@ interface ItemType {
   locationId: number;
   imageUrl: string | null;
   quantity: number;
+  moderationStatus?: number; // 0: Pending, 1: Approved, 2: Reject
 }
 
 // Helper function to recursively parse deeply nested JSON strings
@@ -107,7 +109,6 @@ export default function ProductDetail() {
           tagsToSet = tagsToSet.flat().filter(tag => typeof tag === 'string');
         }
       } catch (e) {
-        console.error("Error with parseDeeplyNestedJson for tags:", e);
         tagsToSet = [];
       }
       setTags(tagsToSet || []);
@@ -122,7 +123,21 @@ export default function ProductDetail() {
       }
       setLocationId(data.locationId);
       if (data.imageUrl) {
-        setImage(`${baseUrl}:${port}${data.imageUrl}`);
+        try {
+          const imageResponse = await fetchWithAuth(itemImage(data.id));
+          if (imageResponse.ok) {
+            const imageBlob = await imageResponse.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImage(reader.result as string);
+            };
+            reader.readAsDataURL(imageBlob);
+          } else {
+            setImage(null);
+          }
+        } catch (e) {
+          setImage(null);
+        }
       } else {
         setImage(null);
       }
@@ -280,37 +295,36 @@ export default function ProductDetail() {
 
     try {
       const formData = new FormData();
-      formData.append("Id", itemId.toString());
       formData.append("Name", name);
       formData.append("Description", description);
       formData.append("LocationId", locationId.toString());
-
       tags.forEach((tag, index) => {
         if (tag.trim() !== "") {
           formData.append(`Tags[${index}]`, tag.trim());
         }
       });
-
       if (image && !image.startsWith("http")) {
         const uriParts = image.split('.');
         const fileType = uriParts[uriParts.length - 1];
-        formData.append("Image", {
+        formData.append("ImageFile", {
           uri: image,
           name: `photo.${fileType}`,
           type: `image/${fileType}`,
         } as any);
       }
-
-      const response = await fetchWithAuth(itemsUpdate(itemId), {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      if (typeof color === 'string' && color.trim() !== "") {
+        formData.append("Color", color.trim());
+      }
+      const url = itemsUpdate(itemId);
+      console.log("[onSave] PUT", url);
+      for (let pair of formData.entries()) {
+        console.log(`[onSave] formData: ${pair[0]} =`, pair[1]);
+      }
+      const response = await fetchWithAuth(url, {
+        method: "PUT",
         body: formData,
       });
-
       const responseText = await response.text();
-
       if (!response.ok) {
         let errorData = null;
         try {
@@ -320,26 +334,17 @@ export default function ProductDetail() {
         }
         throw new Error(errorData.message || "Cập nhật đồ vật thất bại.");
       }
-
       Alert.alert("Thành công", "Đồ vật đã được cập nhật.");
       setTimeout(() => {
         router.push("/dashboard");
       }, 1000);
     } catch (err: any) {
+      console.error("[onSave] Network/API error:", err, err?.stack);
       Alert.alert("Lỗi", err.message || "Đã xảy ra lỗi khi cập nhật đồ vật.");
     } finally {
       setLoading(false);
     }
   };
-
-  // When item data changes, update the image state if imageUrl exists
-  useEffect(() => {
-    if (item?.imageUrl) {
-      setImage(`${baseUrl}:${port}${item.imageUrl}`);
-    } else if (item && !item.imageUrl) {
-      setImage(null);
-    }
-  }, [item?.imageUrl]);
 
   const isTagEditable = (idx: number) => {
     return editingTagIdx === idx;
@@ -365,9 +370,17 @@ export default function ProductDetail() {
     );
   }
 
+
+
   return (
     <View style={styles.container}>
       <AppHeader title="Chi tiết đồ dùng" showBackButton onBackPress={() => router.back()} />
+      {item?.moderationStatus === 1 && (
+        <Text style={{ color: 'green', fontWeight: 'bold', textAlign: 'center', marginTop: 10 }}>Đã duyệt</Text>
+      )}
+      {item?.moderationStatus === 2 && (
+        <Text style={{ color: 'red', fontWeight: 'bold', textAlign: 'center', marginTop: 10 }}>Từ chối</Text>
+      )}
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <TouchableOpacity
@@ -512,7 +525,7 @@ export default function ProductDetail() {
                   setTags(item.tags || []);
                   setLocation(item.location);
                   setLocationId(item.locationId);
-                  setImage(item.imageUrl ? `${baseUrl}:${port}${item.imageUrl}` : null);
+                  setImage(item.imageUrl ? itemImage(item.id) : null);
                 }
                 setNameError(""); setTagError(""); setLocationError("");
                 setEditingTagIdx(null); setEditingTagText("");

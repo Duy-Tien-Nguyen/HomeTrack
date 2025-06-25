@@ -7,13 +7,24 @@ interface ItemCardProps {
   icon: keyof typeof MaterialIcons.glyphMap;
   name: string;
   location: string;
+  moderationStatus?: number;
   onPress?: (itemId: string) => void;
   onDetailPress?: (itemId: string) => void;
   onDeletePress?: (itemId: string) => void;
 }
 
-const ItemCard: React.FC<ItemCardProps> = ({ id, icon, name, location, onPress, onDetailPress, onDeletePress }) => {
+const ItemCard: React.FC<ItemCardProps> = ({ id, icon, name, location, moderationStatus, onPress, onDetailPress, onDeletePress }) => {
   const CardComponent = onPress ? TouchableOpacity : View;
+
+  let statusText = null;
+  let statusColor = undefined;
+  if (moderationStatus === 1) {
+    statusText = 'Đã duyệt';
+    statusColor = 'green';
+  } else if (moderationStatus === 2) {
+    statusText = 'Từ chối';
+    statusColor = 'red';
+  }
 
   return (
     <CardComponent
@@ -27,6 +38,9 @@ const ItemCard: React.FC<ItemCardProps> = ({ id, icon, name, location, onPress, 
       <View style={styles.textContainer}>
         <Text style={styles.itemName}>{name}</Text>
         <Text style={styles.itemLocation}>{location}</Text>
+        {statusText && (
+          <Text style={{ color: statusColor, fontWeight: 'bold', marginTop: 2 }}>{statusText}</Text>
+        )}
       </View>
       <View style={styles.buttonsContainer}>
         {onDetailPress && (

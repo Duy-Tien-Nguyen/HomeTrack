@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const baseUrl = "http://192.168.2.7";
+export const baseUrl = "http://34.10.134.196";
 export const port = "8001";
 
 export const login = `${baseUrl}:${port}/api/auth/login`;
@@ -33,6 +33,8 @@ export const packagesGetAll = `${baseUrl}:${port}/api/packages/all`;
 export const subscriptionsGetMy = `${baseUrl}:${port}/api/subscriptions/by-myself`;
 export const subscriptionsRegister = `${baseUrl}:${port}/api/subscriptions/regis-subcription`;
 
+export const itemImage = (id: number) => `${baseUrl}:${port}/api/items/${id}/image`;
+
 /**
  * Hàm fetchWithAuth: tự động thêm accessToken vào header Authorization
  * @param url URL endpoint
@@ -44,7 +46,11 @@ export async function fetchWithAuth(url: string, options: any = {}) {
     ...(options.headers || {}),
     Authorization: token ? `Bearer ${token}` : undefined,
   };
-  return fetch(url, { ...options, headers });
+  return fetch(url, { 
+    ...options, 
+    headers,
+    cache: 'no-store'
+  });
 }
 
 export async function getUsageStatistics(timeframe: string) {
@@ -68,3 +74,66 @@ export async function getMyProfile() {
     method: "GET",
   });
 }
+
+/**
+ * Gợi ý tag từ AI dựa trên ảnh và context text
+ * @param imageUri uri của ảnh
+ * @param itemContextText mô tả hoặc context của item
+ */
+export async function suggestTagsForImage(imageUri: string, itemContextText: string) {
+  const formData = new FormData();
+  formData.append('ImageFile', {
+    uri: imageUri,
+    name: 'item-image.jpg',
+    type: 'image/jpeg',
+  } as any);
+  formData.append('ItemContextText', itemContextText);
+
+  const response = await fetchWithAuth(`${baseUrl}:${port}/api/items/suggest-tags-for-image`, {
+    method: 'POST',
+    headers: {}, // Không set Content-Type để RN tự set multipart
+    body: formData,
+  });
+  const data = await response.json();
+  if (!data.isSuccess) throw new Error(data.errorMessage || 'Không lấy được gợi ý tag');
+  return data.suggestedTags;
+}
+
+// Add default export
+export default {
+  baseUrl,
+  port,
+  login,
+  accessToken,
+  logout,
+  resetPassword,
+  forgotPassword,
+  register,
+  sendOtp,
+  verifyOtp,
+  itemsCreate,
+  itemsGetById,
+  itemsUpdate,
+  itemsDelete,
+  itemsByLocation,
+  locationsCreate,
+  locationsGetAll,
+  locationsGetById,
+  locationsUpdate,
+  locationsDelete,
+  searchItems,
+  searchAdvanced,
+  statisticsUsage,
+  topMovedStatistics,
+  itemsGetAll,
+  myProfile,
+  packagesGetAll,
+  subscriptionsGetMy,
+  subscriptionsRegister,
+  itemImage,
+  fetchWithAuth,
+  getUsageStatistics,
+  getTopMovedStatistics,
+  getMyProfile,
+  suggestTagsForImage,
+};

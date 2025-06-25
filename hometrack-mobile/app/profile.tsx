@@ -171,7 +171,7 @@ export default function ProfileScreen() {
               title="Nâng cấp"
               onPress={() => {
                 closeForm();
-                router.push("/upgrade-package");
+                router.push("/upgradePackage");
               }}
             />
           </>

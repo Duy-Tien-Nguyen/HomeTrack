@@ -26,3 +26,10 @@ export async function searchAdvanced(params: { tags?: string[]; color?: string; 
 // const data2 = await searchAdvanced({ tags: ['tag1'], color: 'red', sortBy: 'name' }); 
 
 export const statisticsUsage = `${baseUrl}:${port}/api/statistics/usage`; 
+
+// Add default export
+export default {
+  searchItems,
+  searchAdvanced,
+  statisticsUsage,
+}; 

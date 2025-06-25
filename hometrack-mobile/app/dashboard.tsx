@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 
 import AppHeader from "./components/AppHeader";
 import StatsCard from "./components/StatsCard";
 import ItemCard from "./components/ItemCard";
 import BottomNavigation from "./components/BottomNavigation";
-import { getUsageStatistics, itemsDelete, fetchWithAuth, itemsGetAll } from "./api";
+import { itemsDelete, fetchWithAuth, itemsGetAll, locationsGetAll, itemsByLocation } from "./api";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface ItemType {
@@ -24,6 +24,8 @@ interface ItemType {
   locationId: number;
   imageUrl: string | null;
   quantity: number;
+  createdAt: string;
+  moderationStatus?: number; // 0: Pending, 1: Approved, 2: Reject
 }
 
 export default function Dashboard() {
@@ -45,20 +47,18 @@ export default function Dashboard() {
         method: "GET",
       });
 
-      const responseText = await response.text();
-
       if (response.status === 204 || response.headers.get('content-length') === '0') {
         setRecentItems([]);
-        return 0; // Return 0 if no content
+        return { items: [], count: 0 };
       }
 
       let data = null;
       try {
-        data = JSON.parse(responseText);
+        data = JSON.parse(await response.text());
       } catch (e) {
         setError("Failed to parse items data.");
         setRecentItems([]);
-        return 0; // Return 0 on error
+        return { items: [], count: 0 };
       }
 
       if (response.ok) {
@@ -67,10 +67,9 @@ export default function Dashboard() {
         if (!Array.isArray(fetchedItems)) {
           setError("Invalid data format for items.");
           setRecentItems([]);
-          return 0; // Return 0 on invalid data
+          return { items: [], count: 0 };
         }
-        
-        setRecentItems(fetchedItems.map((item: any) => ({
+        const mappedItems = fetchedItems.map((item: any) => ({
           id: item.id.toString(),
           icon: "inventory" as keyof typeof MaterialIcons.glyphMap,
           name: item.name,
@@ -79,70 +78,87 @@ export default function Dashboard() {
           tags: item.tags,
           locationId: item.locationId,
           imageUrl: item.imageUrl,
-          quantity: item.quantity
-        })));
-        return fetchedItems.length; // Return the count of items
+          quantity: item.quantity,
+          createdAt: item.createdAt,
+          moderationStatus: item.moderationStatus,
+        }));
+
+        setRecentItems(mappedItems);
+        return { items: mappedItems, count: mappedItems.length };
       } else {
         setError(data.message || "Failed to fetch recent items");
         setRecentItems([]);
-        return 0; // Return 0 on API error
+        return { items: [], count: 0 };
       }
     } catch (err: any) {
       setError(err.message || "Failed to fetch recent items");
       setRecentItems([]);
-      return 0; // Return 0 on catch error
+      return { items: [], count: 0 };
     }
   };
 
-  const fetchStatistics = async () => {
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await getUsageStatistics("monthly");
-
-      if (response.status === 204 || response.headers.get('content-length') === '0') {
-        return { totalLocations: 0, createdCount: 0 }; // Return 0 if no content
+      // 1. Lấy tất cả các vị trí
+      const locationsResponse = await fetchWithAuth(locationsGetAll);
+      if (!locationsResponse.ok) {
+        throw new Error("Không thể tải danh sách vị trí.");
       }
+      const locations = await locationsResponse.json();
+      const totalLocations = Array.isArray(locations) ? locations.length : 0;
 
-      const data = await response.json();
-      if (response.ok) {
-        return {
-          totalLocations: data.totalLocations || 0,
-          createdCount: data.ActionCounts?.Created || 0,
-        }; // Return statistics data
-      } else {
-        setError(data.message || "Failed to fetch statistics");
-        return null; // Return null on API error
-      }
+      // 2. Lấy tất cả các mục từ mỗi vị trí
+      const itemPromises = locations.map((loc: any) =>
+        fetchWithAuth(itemsByLocation(loc.id)).then(res => res.ok ? res.json() : [])
+      );
+      const itemsByLocationArrays = await Promise.all(itemPromises);
+      const allItems = itemsByLocationArrays.flat().filter(Boolean); // Lọc ra các giá trị null/undefined
+
+      // 3. Cập nhật state cho danh sách "Đồ vật gần đây"
+      const mappedItems = allItems.map((item: any) => ({
+        id: item.id.toString(),
+        icon: "inventory" as keyof typeof MaterialIcons.glyphMap,
+        name: item.name,
+        location: item.location?.name || '',
+        description: item.description,
+        tags: item.tags,
+        locationId: item.locationId,
+        imageUrl: item.imageUrl,
+        quantity: item.quantity,
+        createdAt: item.createdAt,
+        moderationStatus: item.moderationStatus,
+      }));
+      setRecentItems(mappedItems);
+
+      // 4. Tính toán các số liệu thống kê
+      const totalItemsCount = allItems.length;
+
+      // Tính toán "Thêm gần đây" từ dữ liệu item thực tế
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const recentItemsAdded = allItems.filter(item => item.createdAt && new Date(item.createdAt) > oneMonthAgo).length;
+
+      setStatistics(prevStats => ({
+        ...prevStats,
+        totalItems: totalItemsCount,
+        totalLocations: totalLocations,
+        recentItemsAdded: recentItemsAdded,
+        itemsNeedingUpdate: 0,
+      }));
     } catch (err: any) {
-      setError(err.message || "Failed to fetch statistics");
-      return null; // Return null on catch error
+      setError(err.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [recentItemsCount, statsResult] = await Promise.all([
-          fetchRecentItems(),
-          fetchStatistics(),
-        ]);
-
-        setStatistics(prevStats => ({
-          ...prevStats,
-          totalItems: recentItemsCount,
-          totalLocations: statsResult?.totalLocations || 0,
-          recentItemsAdded: statsResult?.createdCount || recentItemsCount || 0, // Fallback to total items if 'Created' is 0
-          itemsNeedingUpdate: 0, // Still hardcoded
-        }));
-      } catch (err: any) {
-        setError(err.message || "Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDashboardData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [loadDashboardData])
+  );
 
   const handleDeleteItem = async (itemId: string) => {
     Alert.alert(
@@ -163,7 +179,6 @@ export default function Dashboard() {
               if (response.ok) {
                 Alert.alert("Thành công", "Món đồ đã được xóa.");
                 fetchRecentItems(); // Refresh the list after deletion
-                // fetchStatistics(); // Không cần gọi lại, totalItems đã được cập nhật bởi fetchRecentItems
               } else {
                 const errorData = await response.json();
                 Alert.alert("Lỗi", errorData.message || "Không thể xóa món đồ.");
@@ -179,14 +194,34 @@ export default function Dashboard() {
   };
 
   const handleDetailPress = (itemId: string) => {
-    router.push(`/product-detail?id=${itemId}`);
+    router.push(`/productDetail?id=${itemId}`);
   };
 
   const statsData = [
-    { label: "Tổng số đồ vật", value: statistics.totalItems },
-    { label: "Phòng / khu vực", value: statistics.totalLocations },
-    { label: "Cần cập nhật", value: statistics.itemsNeedingUpdate },
-    { label: "Thêm gần đây", value: statistics.recentItemsAdded },
+    {
+      label: "Tổng số đồ vật",
+      value: statistics.totalItems,
+      icon: "inventory",
+      subLabel: "Tất cả đồ vật bạn đã quản lý"
+    },
+    {
+      label: "Phòng / khu vực",
+      value: statistics.totalLocations,
+      icon: "meeting-room",
+      subLabel: "Tổng số phòng/khu vực"
+    },
+    {
+      label: "Cần cập nhật",
+      value: statistics.itemsNeedingUpdate,
+      icon: "update",
+      subLabel: "Đồ vật cần kiểm tra lại"
+    },
+    {
+      label: "Thêm gần đây",
+      value: statistics.recentItemsAdded,
+      icon: "add-circle-outline",
+      subLabel: "Đồ vật mới trong tháng"
+    },
   ];
 
   const handleTabPress = (index: number) => {
@@ -196,19 +231,19 @@ export default function Dashboard() {
         // đang ở dashboard rồi
         break;
       case 1:
-        router.push("/Search Screen");
+        router.push("/searchScreen");
         break;
       case 2:
-        router.push("/LocationManager");
+        router.push("/locationManager");
         break;
       case 3:
-        router.push("/profile"); // hoặc đổi thành trang khác nếu có
+        router.push("/profile");
         break;
     }
   };
 
   const handleAddPress = () => {
-    router.push("/add-item");
+    router.push("/addItem");
   };
 
   const handleAvatarPress = () => {
@@ -230,7 +265,13 @@ export default function Dashboard() {
         ) : (
           <View style={styles.statsContainer}>
             {statsData.map((stat, index) => (
-              <StatsCard key={index} label={stat.label} value={stat.value} />
+              <StatsCard
+                key={index}
+                label={stat.label}
+                value={stat.value}
+                icon={stat.icon}
+                subLabel={stat.subLabel}
+              />
             ))}
           </View>
         )}
@@ -246,6 +287,7 @@ export default function Dashboard() {
                 icon={item.icon}
                 name={item.name}
                 location={item.location}
+                moderationStatus={item.moderationStatus}
                 onDetailPress={handleDetailPress}
                 onDeletePress={handleDeleteItem}
               />

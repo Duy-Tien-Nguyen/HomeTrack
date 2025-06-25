@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import Button from "./components/Button";
 import AppHeader from "./components/AppHeader";
 import { packagesGetAll, subscriptionsGetMy, subscriptionsRegister, fetchWithAuth } from "./api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Package {
   id: number;
@@ -45,12 +46,15 @@ export default function UpgradePackage() {
 
         // Fetch current subscription
         const subscriptionResponse = await fetchWithAuth(subscriptionsGetMy);
-        if (!subscriptionResponse.ok) {
-          throw new Error("Failed to fetch current subscription");
-        }
-        const subscriptionData = await subscriptionResponse.json();
-        if (subscriptionData && subscriptionData.length > 0) {
-          setCurrentSubscription(subscriptionData[0]); // Assuming one active subscription
+        if (subscriptionResponse.ok) {
+          const subscriptionData = await subscriptionResponse.json();
+          if (subscriptionData && subscriptionData.length > 0) {
+            setCurrentSubscription(subscriptionData[0]); // Assuming one active subscription
+          } else {
+            setCurrentSubscription(null); // Không có gói nào, cho phép đăng ký
+          }
+        } else {
+          setCurrentSubscription(null); // Không throw error, cho phép đăng ký
         }
       } catch (err: any) {
         setError(err.message);
@@ -66,20 +70,32 @@ export default function UpgradePackage() {
   const handleUpgrade = async (packageId: number) => {
     try {
       setLoading(true);
+      // Lấy userId từ AsyncStorage
+      const userId = await AsyncStorage.getItem("userId");
+      if (!userId) {
+        Alert.alert("Lỗi", "Không tìm thấy userId. Vui lòng đăng nhập lại.");
+        setLoading(false);
+        return;
+      }
       const response = await fetchWithAuth(subscriptionsRegister, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ packageId }),
+        body: JSON.stringify({ userId: Number(userId), packageId }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register subscription");
+      let text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error('Lỗi khi xử lý phản hồi từ máy chủ');
       }
-
+      if (!response.ok) {
+        throw new Error((data && data.message) || "Failed to register subscription");
+      }
       Alert.alert("Thành công", "Đăng ký gói thành công!");
+      console.log('NÂNG CẤP GÓI THÀNH CÔNG:', { packageId });
       // Optionally refetch current subscription to update UI
       const subscriptionResponse = await fetchWithAuth(subscriptionsGetMy);
       if (subscriptionResponse.ok) {

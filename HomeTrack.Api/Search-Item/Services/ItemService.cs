@@ -465,40 +465,34 @@ public class ItemService : IItemService
     {
         try
         {
-            var items = await _context.Items
-                                    .Where(i => i.UserId == userId && i.DeletedAt == null)
-                                    .Include(i => i.Location)
-                                    .Include(i => i.ItemTags)
-                                        .ThenInclude(it => it.Tag)
-                                    .ToListAsync();
+            var itemsQuery = _context.Items
+                                     .Where(item => item.UserId == userId && item.DeletedAt == null)
+                                     .Include(item => item.Location)
+                                     .Include(item => item.ItemTags)
+                                         .ThenInclude(it => it.Tag);
 
-            var itemViewModels = items.Select(item => new ItemViewModel
+            var items = await itemsQuery.Select(item => new ItemViewModel
             {
                 Id = item.Id,
                 Name = item.Name,
                 Description = item.Description,
                 ImageUrl = item.ImageUrl,
                 LocationId = item.LocationId,
-                Tags = item.ItemTags?.Select(it => it.Tag.Name).ToList(),
+                Tags = item.ItemTags.Select(it => it.Tag.Name).ToList(),
                 CreatedAt = item.CreatedAt,
                 Color = item.Color,
                 Location = item.Location != null ? new LocationResponseDto
                 {
                     Id = item.Location.Id,
-                    Name = item.Location.Name,
-                    Description = item.Location.Description,
-                    ParentLocationId = item.Location.ParentLocationId,
-                    CreatedAt = item.Location.CreatedAt,
-                    UpdatedAt = item.Location.UpdatedAt,
-                    Items = null
+                    Name = item.Location.Name
                 } : null
-            });
+            }).ToListAsync();
 
-            return ServiceResult<IEnumerable<ItemViewModel>>.Success(itemViewModels);
+            return ServiceResult<IEnumerable<ItemViewModel>>.Success(items);
         }
         catch (Exception ex)
         {
-            return ServiceResult<IEnumerable<ItemViewModel>>.Failure($"Đã có lỗi xảy ra trong quá trình lấy tất cả đồ vật: {ex.Message}");
+            return ServiceResult<IEnumerable<ItemViewModel>>.Failure($"Đã có lỗi xảy ra: {ex.Message}");
         }
     }
 }

@@ -346,7 +346,6 @@ namespace HomeTrack.Application.Services
 
                 if (itemDto.Tags != null && !currentTagNames.SetEquals(newTagNames))
                 {
-                    _context.ItemTags.RemoveRange(existingItem.ItemTags);
                     _context.ItemTags.RemoveRange(existingItem.ItemTags); // Xóa các tag cũ
                     // existingItem.ItemTags.Clear();
 
@@ -360,9 +359,9 @@ namespace HomeTrack.Application.Services
 
                         if (tagEntity == null)
                         {
-                            tagEntity = new Tag { Name = tagName.Trim(), CreatedAt = DateTime.UtcNow, User = null! };
+                            tagEntity = new Tag { Name = tagName.Trim(), CreatedAt = DateTime.UtcNow, User = null!, ModerationStatus = TagModerationStatus.Pending};
                             _context.Tags.Add(tagEntity);
-                            // await _context.SaveChangesAsync();
+                            await _context.SaveChangesAsync();
                         }
                         associatedTagEntitiesForUpdate.Add(tagEntity);
 
@@ -470,7 +469,7 @@ namespace HomeTrack.Application.Services
                     CreatedAt = existingItem.CreatedAt,
                     Color = existingItem.Color,
                     ModerationStatus = existingItem.ImageModerationStatus,
-                    ModerationNote = existingItem.ModerationNote
+                    // ModerationNote = existingItem.ModerationNote
                 };
 
 

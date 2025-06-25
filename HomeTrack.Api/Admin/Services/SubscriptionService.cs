@@ -89,6 +89,8 @@ namespace HomeTrack.Application.Services
           throw new Exception("User not found");
         }
 
+        user.Role = Role.Premium; // Nâng cấp role cho user
+
         if (await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(subscriptionDto.UserId, subscriptionDto.PackageId) != null)
         {
           _logger.LogWarning("Nguoi dùng với ID {UserId} đã có gói đăng ký hoạt động cho gói {PackageId}", subscriptionDto.UserId, subscriptionDto.PackageId);

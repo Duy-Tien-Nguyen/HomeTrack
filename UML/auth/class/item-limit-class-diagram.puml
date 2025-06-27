@@ -1,0 +1,125 @@
+@startuml ItemLimitClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Giới Hạn Đồ Vật (FR6.1)
+
+package "Presentation Layer" {
+    class ItemsController {
+        - IItemService _itemService
+        + CreateItem(CreateItemDto itemDto): Task<IActionResult>
+    }
+
+    class AdminController {
+        - IAdminService _adminService
+        + ChangeBasicPackageLimit(newLimit): Task<IActionResult>
+        + ChangePremiumPackageLimit(newLimit): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IItemService {
+        + CreateNewItem(itemDto, userId): Task<ServiceResult<ItemViewModel>>
+    }
+
+    class ItemService {
+        - ApplicationDBContext _context
+        - ISystemSettingService _systemSettingService
+        + CreateNewItem(itemDto, userId): Task<ServiceResult<ItemViewModel>>
+    }
+
+    interface IAdminService {
+        + ChangeItemLimit(packageType, newLimit): Task<bool>
+    }
+
+    class AdminService {
+        - ISystemSettingRepository _systemSettingRepo
+        + ChangeItemLimit(packageType, newLimit): Task<bool>
+    }
+
+    interface ISystemSettingService {
+        + GetByKeyAsync(key): Task<SystemSetting>
+    }
+
+    class SystemSettingService {
+        - ISystemSettingRepository _systemSettingRepo
+        + GetByKeyAsync(key): Task<SystemSetting>
+    }
+
+    class "ServiceResult<T>" as ServiceResult {
+        + IsSuccess: bool
+        + ErrorMessage: string?
+        + Data: T?
+    }
+}
+
+package "Domain Layer" {
+    class Item {
+        + Id: int
+        + UserId: int
+        + DeletedAt: DateTime?
+        ' ... other properties'
+    }
+
+    class User {
+        + Id: int
+        + Role: Role
+        ' ... other properties'
+    }
+
+    class SystemSetting {
+        + Id: int
+        + SettingKey: string
+        + SettingValue: int
+        + Description: string
+    }
+
+    enum Role {
+        basic
+        premium
+        admin
+    }
+}
+
+package "Infrastructure Layer" {
+    interface ISystemSettingRepository {
+        + GetByKeyAsync(key): Task<SystemSetting>
+        + UpdateAsync(setting): Task
+    }
+
+    class SystemSettingRepository {
+        - ApplicationDBContext _context
+        + GetByKeyAsync(key): Task<SystemSetting>
+        + UpdateAsync(setting): Task
+    }
+
+    class ApplicationDBContext {
+        + Users: DbSet<User>
+        + Items: DbSet<Item>
+        + SystemSettings: DbSet<SystemSetting>
+    }
+}
+
+' Relationships'
+ItemsController ..> IItemService : uses
+AdminController ..> IAdminService : uses
+
+ItemService ..|> IItemService : implements
+ItemService ..> ISystemSettingService : uses
+ItemService ..> ApplicationDBContext : uses
+
+AdminService ..|> IAdminService : implements
+AdminService ..> ISystemSettingRepository : uses
+
+SystemSettingService ..|> ISystemSettingService : implements
+SystemSettingService ..> ISystemSettingRepository : uses
+
+SystemSettingRepository ..|> ISystemSettingRepository : implements
+SystemSettingRepository ..> ApplicationDBContext : uses
+
+ApplicationDBContext --o User : manages
+ApplicationDBContext --o Item : manages
+ApplicationDBContext --o SystemSetting : manages
+
+ItemService ..> User : queries
+ItemService ..> Item : queries
+
+@enduml

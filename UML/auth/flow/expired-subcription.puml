@@ -1,0 +1,51 @@
+@startuml HandleExpiredSubscriptionsFlow
+
+title Luồng Tự Hạ Role Khi Gói Hết Hạn
+
+participant SubscriptionService
+participant ISubscriptionRepository
+participant ApplicationDBContext
+participant IUserRepository
+participant User
+
+SubscriptionService -> SubscriptionService: HandleExpiredSubscriptionsAsync()
+activate SubscriptionService
+
+SubscriptionService -> ISubscriptionRepository: GetAllAsync()
+activate ISubscriptionRepository
+
+ISubscriptionRepository --> SubscriptionService: subscriptions
+deactivate ISubscriptionRepository
+
+loop for each subscription in subscriptions
+    alt subscription.Status == Active && subscription.EndsAt < now
+        SubscriptionService -> SubscriptionService: Cập nhật subscription.Status = Expired
+
+        SubscriptionService -> ISubscriptionRepository: UpdateAsync(subscription)
+        activate ISubscriptionRepository
+        ISubscriptionRepository --> SubscriptionService: success
+        deactivate ISubscriptionRepository
+
+        SubscriptionService -> IUserRepository: GetByIdAsync(subscription.UserId)
+        activate IUserRepository
+        IUserRepository --> SubscriptionService: user
+        deactivate IUserRepository
+
+        alt user != null
+            SubscriptionService -> ApplicationDBContext: Update user.Role = Basic
+            activate ApplicationDBContext
+            ApplicationDBContext --> SubscriptionService: success
+            deactivate ApplicationDBContext
+
+            SubscriptionService -> IUserRepository: SaveChangesAsync()
+            activate IUserRepository
+            IUserRepository --> SubscriptionService: success
+            deactivate IUserRepository
+        end
+    end
+end
+
+SubscriptionService --> SubscriptionService: Hoàn thành
+deactivate SubscriptionService
+
+@enduml

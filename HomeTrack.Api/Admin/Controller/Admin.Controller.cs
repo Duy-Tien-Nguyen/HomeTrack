@@ -177,5 +177,63 @@ namespace HomeTrack.Api.Controllers
         return StatusCode(500, $"Lỗi khi thay đổi giới hạn: {ex.Message}");
       }
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("logs")]
+    public async Task<IActionResult> GetLogs([FromQuery] int? userId, [FromQuery] string? actionType, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
+    {
+      try
+      {
+        var result = await _adminService.GetSystemLogsAsync(userId, actionType, startTime, endTime);
+
+        if (!result.IsSuccess)
+        {
+          return StatusCode(StatusCodes.Status500InternalServerError, new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Data);
+      }
+      catch (Exception ex) // Bắt các lỗi
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"Đã xảy ra lỗi không mong muốn: {ex.Message}" });
+      }
+    }
+
+    [HttpGet("statistics/users-per-month")]
+    public async Task<IActionResult> GetUsersPerMonth()
+    {
+      try
+      {
+        var result = await _adminService.GetUserRegistrationsPerMonthAsync();
+        if (!result.IsSuccess)
+        {
+          return StatusCode(StatusCodes.Status500InternalServerError, new { message = result.ErrorMessage });
+        }
+        return Ok(result.Data);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"Đã xảy ra lỗi không mong muốn: {ex.Message}" });
+      }
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("statistics/items-per-month")]
+    public async Task<IActionResult> GetItemsPerMonth()
+    {
+      try
+      {
+        var result = await _adminService.GetItemCreationsPerMonthAsync();
+        if (!result.IsSuccess)
+        {
+          return StatusCode(StatusCodes.Status500InternalServerError, new { message = result.ErrorMessage });
+        }
+        return Ok(result.Data);
+      }
+      catch (Exception ex)
+      {
+        return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"Đã xảy ra lỗi không mong muốn: {ex.Message}" });
+      }
+    }
   }
 }

@@ -1,0 +1,220 @@
+@startuml AuthClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Xác Thực (Đăng nhập, Đăng xuất, Quên/Đặt lại mật khẩu, Profile)
+
+package "Presentation Layer" {
+    class AuthController {
+        - IAuthService _authService
+        - ILogger<AuthController> _logger
+        + LoginAsync(LoginRequest req): Task<IActionResult>
+        + Logout(): Task<IActionResult>
+        + GetAccessToken(): Task<IActionResult>
+        + ResetPassword(ResetPasswordRequest req): Task<IActionResult>
+        + ForgetPassword(ForgetPasswordRequest req): Task<IActionResult>
+        + GetMyProfile(): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IAuthService {
+        + LoginAsync(LoginRequest req): LoginResponseDto
+        + LogoutAsync(int userId): boolean
+        + GetAccessToken(string userId, string email, string role): AccessTokenString
+        + ResetPassword(int userId, string newPassword): boolean
+        + ForgotPassword(string token, string email, string newPassword): boolean
+        + GetProfile(int userId): UserDto
+    }
+
+    class AuthService {
+        - IUserRepository _userRepo
+        - IPasswordHasher<User> _passwordHasher
+        - IJwtService _jwtService
+        - ITokenService _tokenService
+        + LoginAsync(LoginRequest req): LoginResponseDto
+        + LogoutAsync(int userId): boolean
+        + GetAccessToken(string userId, string email, string role): AccessTokenString
+        + ResetPassword(int userId, string newPassword): boolean
+        + ForgotPassword(string token, string email, string newPassword): boolean
+        + GetProfile(int userId): UserDto
+    }
+
+    interface IJwtService {
+        + GenerateAccessToken(User user): string
+        + GenerateRefreshToken(User user): string
+        + ValidateToken(string token): ClaimsPrincipal
+    }
+
+    class JwtService {
+        + GenerateAccessToken(User user): string
+        + GenerateRefreshToken(User user): string
+        + ValidateToken(string token): ClaimsPrincipal
+    }
+
+    interface ITokenService {
+        + CreateTokenAsync(userId): Task<string>
+        + VerifyTokenAsync(userId, token): Task<bool>
+        + RevokeAllUserOTP(userId): Task
+    }
+
+    class TokenService {
+        - ITokenRepository _tokenRepo
+        + CreateTokenAsync(userId): Task<string>
+        + VerifyTokenAsync(userId, token): Task<bool>
+        + RevokeAllUserOTP(userId): Task
+    }
+}
+
+package "Domain Layer" {
+    class User {
+        + Id: int
+        + Email: string
+        + Password: string
+        + FirstName: string
+        + LastName: string
+        + Role: Role
+        + Status: UserStatus
+        + RefreshToken: string
+        + CreatedAt: DateTime
+        + UpdatedAt: DateTime
+    }
+
+    enum Role {
+        basic
+        premium
+        admin
+    }
+
+    enum UserStatus {
+        Active
+        Banned
+        Pending
+    }
+
+    class ConfirmationToken {
+        + Id: int
+        + UserId: int
+        + Token: string
+        + ExpiresAt: DateTime
+        + Used: boolean
+    }
+}
+
+package "Infrastructure Layer" {
+    interface IUserRepository {
+        + GetByIdAsync(int id): Task<User>
+        + GetByEmailAsync(string email): Task<User>
+        + Update(User user): Task
+        + SaveChangesAsync(): Task
+    }
+
+    class UserRepository {
+        - ApplicationDBContext _context
+        + GetByIdAsync(int id): Task<User>
+        + GetByEmailAsync(string email): Task<User>
+        + Update(User user): Task
+        + SaveChangesAsync(): Task
+    }
+
+    interface ITokenRepository {
+        + AddAsync(ConfirmationToken token): Task
+        + GetByUserIdAndTokenAsync(int userId, string token): Task<ConfirmationToken>
+        + InvalidateActiveOtpTokensForUserAsync(int userId): Task
+    }
+
+    class TokenRepository {
+        - ApplicationDBContext _context
+        + AddAsync(ConfirmationToken token): Task
+        + GetByUserIdAndTokenAsync(int userId, string token): Task<ConfirmationToken>
+        + InvalidateActiveOtpTokensForUserAsync(int userId): Task
+    }
+
+    class ApplicationDBContext {
+        + Users: DbSet<User>
+        + ConfirmationTokens: DbSet<ConfirmationToken>
+        + SaveChangesAsync(): Task<int>
+    }
+
+    interface "IPasswordHasher<T>" as IPasswordHasher {
+        + HashPassword(user, password): string
+        + VerifyHashedPassword(user, hashedPassword, providedPassword): PasswordVerificationResult
+    }
+}
+
+package "Data Transfer Objects" {
+    class LoginRequest {
+        + email: string
+        + password: string
+    }
+
+    class LoginResponseDto {
+        + IsSuccess: bool
+        + AccessToken: string
+        + RefreshToken: string
+        + ErrorMessage: string
+        + User: UserDto
+    }
+
+    class UserDto {
+        + Id: int
+        + Email: string
+        + FirstName: string
+        + LastName: string
+        + Role: string
+    }
+
+    class AccessTokenString {
+        + accessToken: string
+    }
+
+    class ResetPasswordRequest {
+        + newPassword: string
+    }
+
+    class ForgetPasswordRequest {
+        + email: string
+        + token: string
+        + newPassword: string
+        + repeatPassword: string
+    }
+}
+
+' Relationships'
+AuthController ..> IAuthService : uses
+AuthController ..> ILogger : uses
+AuthController ..> LoginRequest : uses
+AuthController ..> LoginResponseDto : returns
+AuthController ..> ResetPasswordRequest : uses
+AuthController ..> ForgetPasswordRequest : uses
+AuthController ..> UserDto : returns
+AuthController ..> AccessTokenString : returns
+
+AuthService ..|> IAuthService : implements
+AuthService ..> IUserRepository : uses
+AuthService ..> IPasswordHasher : uses
+AuthService ..> IJwtService : uses
+AuthService ..> ITokenService : uses
+AuthService ..> LoginResponseDto : returns
+AuthService ..> UserDto : returns
+AuthService ..> AccessTokenString : returns
+
+JwtService ..|> IJwtService : implements
+
+TokenService ..|> ITokenService : implements
+TokenService ..> ITokenRepository : uses
+
+UserRepository ..|> IUserRepository : implements
+UserRepository ..> ApplicationDBContext : uses
+
+TokenRepository ..|> ITokenRepository : implements
+TokenRepository ..> ApplicationDBContext : uses
+
+ApplicationDBContext --o User : manages
+ApplicationDBContext --o ConfirmationToken : manages
+
+User "1" -- "0..*" ConfirmationToken : has
+User --> Role : uses
+User --> UserStatus : uses
+
+LoginResponseDto ..> UserDto : contains
+
+@enduml

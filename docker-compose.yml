@@ -17,8 +17,26 @@ services:
       - hometrack-network
     restart: unless-stopped
 
+  hometrack-api:
+    build: 
+      context: ./HomeTrack.Api
+      dockerfile: dockerfile
+      
+    image: hometrack-api-service
+    ports:
+      - "8001:8001"
+    container_name: hometrack_api_container
+    restart: unless-stopped
+    volumes:
+      - hometrack_uploads:/app/wwwroot/uploads
+    networks:
+      - hometrack-network
+
+
 volumes:
   postgres_data:
+  hometrack_uploads:
+    driver: local
 
 networks:
   hometrack-network:

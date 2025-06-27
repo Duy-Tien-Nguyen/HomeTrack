@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using HomeTrack.Domain.Enum;
 
 namespace HomeTrack.Domain
 {
@@ -29,6 +30,13 @@ public class Item
     public int? LocationId { get; set; } 
     [ForeignKey("LocationId")]
     public virtual Location? Location { get; set; } 
+
+    public ModerationStatus ImageModerationStatus { get; set; }
+    public string? ModerationNote { get; set; }
+    public int? ModerationByUserId { get; set; }
+        [ForeignKey("ModerationByUserId")]
+        public virtual User? ModerationByUser { get; set; }
+    public DateTime? ModeratedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; } 
 

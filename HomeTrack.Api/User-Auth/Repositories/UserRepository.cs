@@ -2,7 +2,6 @@ using HomeTrack.Application.Interface;
 using HomeTrack.Domain;
 using Microsoft.EntityFrameworkCore;
 using HomeTrack.Infrastructure.Data;
-using System.Threading.Tasks;
 
 namespace HomeTrack.Infrastructure.Repositories
 {

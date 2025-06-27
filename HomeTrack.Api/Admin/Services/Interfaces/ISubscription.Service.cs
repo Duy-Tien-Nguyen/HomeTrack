@@ -14,5 +14,6 @@ namespace HomeTrack.Application.Interface
         Task<SubscriptionDto> CancelAsync(int id, int userId);  // Hủy gói đăng ký
         Task<SubscriptionDto> ExpireAsync(int id, int userId); // Gia hạn gói đăng ký
         Task<bool> ActivateAsync(int id, int userId); // Kích hoạt gói đăng ký
+        Task HandleExpiredSubscriptionsAsync(); // cron job thay đổi role user tự động khi gói hết hạn
     }
 }

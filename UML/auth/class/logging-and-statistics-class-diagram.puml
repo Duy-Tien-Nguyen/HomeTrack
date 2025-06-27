@@ -1,0 +1,82 @@
+@startuml LoggingAndStatisticsClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Xem Logs & Thống Kê (FR8.1, FR8.2)
+
+package "Presentation Layer" {
+    class AdminController {
+        - IAdminService _adminService
+        + GetLogs(userId, actionType, startTime, endTime): Task<IActionResult>
+        + GetUsersPerMonth(): Task<IActionResult>
+        + GetItemsPerMonth(): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IAdminService {
+        + GetSystemLogsAsync(userId, actionType, startTime, endTime): Task<ServiceResult<IEnumerable<StatsReport>>>
+        + GetUserRegistrationsPerMonthAsync(): Task<ServiceResult<IEnumerable<object>>>
+        + GetItemCreationsPerMonthAsync(): Task<ServiceResult<IEnumerable<object>>>
+    }
+
+    class AdminService {
+        - ApplicationDBContext _context
+        - ILogger<AdminService> _logger
+        + GetSystemLogsAsync(...): Task<ServiceResult<IEnumerable<StatsReport>>>
+        + GetUserRegistrationsPerMonthAsync(): Task<ServiceResult<IEnumerable<object>>>
+        + GetItemCreationsPerMonthAsync(): Task<ServiceResult<IEnumerable<object>>>
+    }
+}
+
+package "Domain Layer" {
+    class StatsReport {
+        + Id: int
+        + UserId: int
+        + ItemId: int?
+        + ActionType: ActionType
+        + Timestamp: DateTime
+    }
+
+    class User {
+        + Id: int
+        + CreatedAt: DateTime
+        ' ... other properties'
+    }
+
+    class Item {
+        + Id: int
+        + CreatedAt: DateTime
+        ' ... other properties'
+    }
+
+    enum ActionType {
+        Created
+        Edited
+        Moved
+        Deleted
+    }
+}
+
+package "Infrastructure Layer" {
+    class ApplicationDBContext {
+        + StatsReports: DbSet<StatsReport>
+        + Users: DbSet<User>
+        + Items: DbSet<Item>
+    }
+}
+
+' Relationships
+AdminController ..> IAdminService : uses
+
+AdminService ..|> IAdminService : implements
+AdminService ..> ApplicationDBContext : uses
+AdminService ..> ILogger : uses
+
+AdminService ..> StatsReport : queries
+AdminService ..> User : queries
+AdminService ..> Item : queries
+
+ApplicationDBContext --o StatsReport : manages
+ApplicationDBContext --o User : manages
+ApplicationDBContext --o Item : manages
+
+@enduml

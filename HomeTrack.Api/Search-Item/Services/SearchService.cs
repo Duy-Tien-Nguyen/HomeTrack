@@ -81,7 +81,7 @@ namespace HomeTrack.Application.Services
             {
                 // Authorization: Check if user has Premium subscription
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-                if (user == null || user.Role != HomeTrack.Domain.Enum.Role.Premium) // Use fully qualified enum name
+                if (user == null || (user.Role != Role.Premium && user.Role != Role.Admin)) // Use fully qualified enum name
                 {
                     return ServiceResult<IEnumerable<ItemViewModel>>.Failure("Tính năng tìm kiếm nâng cao chỉ dành cho người dùng Premium.");
                 }

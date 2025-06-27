@@ -123,6 +123,7 @@ namespace HomeTrack.Application.Services
           if (isTokenValid)
           {
             user.Password = _passwordHasher.HashPassword(user, newPassword);
+            await _tokenService.RevokeAllUserOTP(user.Id);
             await _userRepo.SaveChangesAsync();
             return true;
           }

@@ -1,0 +1,44 @@
+@startuml GetMyProfileFlow
+
+title Luồng Xem Chi Tiết User Profile
+
+actor Client
+participant AuthController
+participant IAuthService
+participant IUserRepository
+database ApplicationDBContext
+
+note over Client, AuthController
+  Người dùng đã đăng nhập và có Access Token hợp lệ.
+end note
+
+Client -> AuthController: GET /api/auth/myprofile (Authorization: Bearer <AccessToken>)
+activate AuthController
+
+AuthController -> AuthController: Trích xuất UserId từ Access Token
+alt UserId không hợp lệ từ token
+    AuthController --> Client: 401 Unauthorized (Không thể xác định người dùng)
+    deactivate AuthController
+else UserId hợp lệ
+    AuthController -> IAuthService: GetProfile(userId)
+    activate IAuthService
+
+    IAuthService -> IUserRepository: GetByIdAsync(userId)
+    activate IUserRepository
+    IUserRepository --> IAuthService: user (nếu tồn tại)
+    deactivate IUserRepository
+
+    alt Người dùng không tồn tại
+        IAuthService --> AuthController: null
+        deactivate IAuthService
+        AuthController --> Client: 404 Not Found (Không tìm thấy người dùng)
+        deactivate AuthController
+    else Người dùng tồn tại
+        IAuthService --> AuthController: user (thông tin người dùng)
+        deactivate IAuthService
+        AuthController --> Client: 200 OK (Thông tin người dùng)
+        deactivate AuthController
+    end
+end
+
+@enduml

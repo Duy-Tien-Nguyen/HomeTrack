@@ -1,0 +1,182 @@
+@startuml RegistrationFlow
+
+title Luồng Đăng Ký Người Dùng
+
+actor Client
+participant RegistrationController
+participant RegistrationService
+participant IUserRepository
+participant ITokenService
+participant IEmailService
+participant IPasswordHasher
+database ApplicationDBContext
+
+Client -> RegistrationController: POST /api/registration/register (email, password, firstName, lastName)
+activate RegistrationController
+
+RegistrationController -> RegistrationService: RegisterAsync(email, password, firstName, lastName)
+activate RegistrationService
+
+RegistrationService -> IUserRepository: GetByEmailAsync(email)
+activate IUserRepository
+IUserRepository --> RegistrationService: User (nếu tồn tại)
+deactivate IUserRepository
+
+alt Người dùng đã tồn tại
+    RegistrationService --> RegistrationController: Exception/Error (ví dụ: "Email đã đăng ký")
+    deactivate RegistrationService
+    RegistrationController --> Client: 500 Internal Server Error (hoặc 400 Bad Request nếu lỗi cụ thể)
+    deactivate RegistrationController
+else Người dùng chưa tồn tại
+    RegistrationService -> IPasswordHasher: HashPassword(password)
+    activate IPasswordHasher
+    IPasswordHasher --> RegistrationService: hashedPassword
+    deactivate IPasswordHasher
+
+    RegistrationService -> IUserRepository: AddAsync(newUser)
+    activate IUserRepository
+    IUserRepository --> RegistrationService: newUser (với Id)
+    deactivate IUserRepository
+
+    RegistrationService -> ITokenService: CreateTokenAsync(userId)
+    activate ITokenService
+    ITokenService --> RegistrationService: otpToken
+    deactivate ITokenService
+
+    RegistrationService -> IEmailService: sendOTPEmail(email, otpToken)
+    activate IEmailService
+    IEmailService --> RegistrationService: thành công/thất bại
+    deactivate IEmailService
+
+    RegistrationService -> ApplicationDBContext: SaveChangesAsync()
+    activate ApplicationDBContext
+    ApplicationDBContext --> RegistrationService: thành công
+    deactivate ApplicationDBContext
+
+    RegistrationService --> RegistrationController: thành công
+    deactivate RegistrationService
+    RegistrationController --> Client: 200 OK (OTP đã được gửi)
+    deactivate RegistrationController
+end
+
+@enduml
+
+@startuml VerifyOTPFlow
+
+title Luồng Xác Thực OTP
+
+actor Client
+participant RegistrationController
+participant RegistrationService
+participant IUserRepository
+participant ITokenService
+database ApplicationDBContext
+
+Client -> RegistrationController: POST /api/registration/verify (email, token)
+activate RegistrationController
+
+RegistrationController -> RegistrationService: VerifyOTP(email, token)
+activate RegistrationService
+
+RegistrationService -> IUserRepository: GetByEmailAsync(email)
+activate IUserRepository
+IUserRepository --> RegistrationService: user
+deactivate IUserRepository
+
+alt Không tìm thấy người dùng
+    RegistrationService --> RegistrationController: false (người dùng không tồn tại)
+    deactivate RegistrationService
+    RegistrationController --> Client: 400 Bad Request (status: false)
+    deactivate RegistrationController
+else Tìm thấy người dùng
+    RegistrationService -> ITokenService: VerifyTokenAsync(userId, token)
+    activate ITokenService
+    ITokenService --> RegistrationService: isValidToken (boolean)
+    deactivate ITokenService
+
+    alt Token hợp lệ
+        RegistrationService -> IUserRepository: ActivateUserAsync(userId)
+        activate IUserRepository
+        IUserRepository --> RegistrationService: thành công
+        deactivate IUserRepository
+
+        RegistrationService -> ITokenService: RevokeAllUserOTP(userId)
+        activate ITokenService
+        ITokenService --> RegistrationService: thành công
+        deactivate ITokenService
+
+        RegistrationService -> ApplicationDBContext: SaveChangesAsync()
+        activate ApplicationDBContext
+        ApplicationDBContext --> RegistrationService: thành công
+        deactivate ApplicationDBContext
+
+        RegistrationService --> RegistrationController: true
+        deactivate RegistrationService
+        RegistrationController --> Client: 200 OK (status: true)
+        deactivate RegistrationController
+    else Token không hợp lệ
+        RegistrationService --> RegistrationController: false
+        deactivate RegistrationService
+        RegistrationController --> Client: 400 Bad Request (status: false)
+        deactivate RegistrationController
+    end
+end
+
+@enduml
+
+@startuml ResendOTPFlow
+
+title Luồng Gửi Lại OTP
+
+actor Client
+participant RegistrationController
+participant RegistrationService
+participant IUserRepository
+participant ITokenService
+participant IEmailService
+database ApplicationDBContext
+
+Client -> RegistrationController: POST /api/registration/resendOTP (email)
+activate RegistrationController
+
+RegistrationController -> RegistrationService: ResendOTP(email)
+activate RegistrationService
+
+RegistrationService -> IUserRepository: GetByEmailAsync(email)
+activate IUserRepository
+IUserRepository --> RegistrationService: user
+deactivate IUserRepository
+
+alt Không tìm thấy người dùng
+    RegistrationService --> RegistrationController: false (người dùng không tồn tại)
+    deactivate RegistrationService
+    RegistrationController --> Client: 400 Bad Request
+    deactivate RegistrationController
+else Tìm thấy người dùng
+    RegistrationService -> ITokenService: RevokeAllUserOTP(userId)
+    activate ITokenService
+    ITokenService --> RegistrationService: thành công
+    deactivate ITokenService
+
+    RegistrationService -> ITokenService: CreateTokenAsync(userId)
+    activate ITokenService
+    ITokenService --> RegistrationService: newOtpToken
+    deactivate ITokenService
+
+    RegistrationService -> IEmailService: sendOTPEmail(email, newOtpToken)
+    activate IEmailService
+    IEmailService --> RegistrationService: thành công/thất bại
+    deactivate IEmailService
+
+    RegistrationService -> ApplicationDBContext: SaveChangesAsync()
+    activate ApplicationDBContext
+    ApplicationDBContext --> RegistrationService: thành công
+    deactivate ApplicationDBContext
+
+    RegistrationService --> RegistrationController: true
+    deactivate RegistrationService
+    RegistrationController --> Client: 200 OK (OTP đã được gửi lại)
+    deactivate RegistrationController
+end
+
+@enduml

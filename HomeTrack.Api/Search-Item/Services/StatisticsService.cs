@@ -40,7 +40,15 @@ namespace HomeTrack.Application.Services
 
         private async Task<ServiceResult<bool>> CheckPremiumUser(int userId)
         {
-            // Tạm thời bỏ qua kiểm tra người dùng Premium cho mục đích phát triển
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return ServiceResult<bool>.Failure("Người dùng không tồn tại.");
+            }
+            if (user.Role != Role.Premium && user.Role != Role.Admin)
+            {
+                return ServiceResult<bool>.Failure("Tính năng này chỉ dành cho người dùng Premium.");
+            }
             return ServiceResult<bool>.Success(true);
 
             // Logic gốc (đã comment):

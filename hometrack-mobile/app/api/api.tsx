@@ -28,7 +28,7 @@ export const topMovedStatistics = `${baseUrl}:${port}/api/statistics/top-moved`;
 export const itemsGetAll = `${baseUrl}:${port}/api/items/getAll`;
 export const myProfile = `${baseUrl}:${port}/api/auth/myprofile`;
 
-// Package and Subscription APIs
+
 export const packagesGetAll = `${baseUrl}:${port}/api/packages/all`;
 export const subscriptionsGetMy = `${baseUrl}:${port}/api/subscriptions/by-myself`;
 export const subscriptionsRegister = `${baseUrl}:${port}/api/subscriptions/regis-subcription`;
@@ -91,7 +91,7 @@ export async function suggestTagsForImage(imageUri: string, itemContextText: str
 
   const response = await fetchWithAuth(`${baseUrl}:${port}/api/items/suggest-tags-for-image`, {
     method: 'POST',
-    headers: {}, // Không set Content-Type để RN tự set multipart
+    headers: {}, 
     body: formData,
   });
   const data = await response.json();

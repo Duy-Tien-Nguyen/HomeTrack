@@ -9,13 +9,13 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import Button from "./components/Button";
-import { verifyOtp, register, sendOtp } from "./api";
+import Button from "../components/common/Button";
+import { verifyOtp, register, sendOtp } from "../api/api";
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  // Lấy lại các trường truyền từ Register
+ 
   const email = params.email;
   const firstName = params.firstName;
   const lastName = params.lastName;
@@ -54,7 +54,7 @@ export default function VerifyOtpScreen() {
     setOtpError("");
     setLoading(true);
 
-    // 1. Gọi verifyOtp
+    
     try {
       const verifyRes = await fetch(verifyOtp, {
         method: "POST",
@@ -68,10 +68,10 @@ export default function VerifyOtpScreen() {
         return;
       }
 
-      // Nếu xác thực OTP thành công, chuyển hướng về trang đăng nhập
+      
       Alert.alert("Thông báo", "Xác thực OTP thành công!");
       setLoading(false);
-      router.push("/login");  // Chuyển hướng về trang đăng nhập sau khi xác minh OTP thành công
+      router.push("/Auth/login");  
     } catch (err) {
       setOtpError("Không thể xác thực OTP, vui lòng thử lại");
       setLoading(false);

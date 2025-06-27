@@ -1,4 +1,4 @@
-import { baseUrl, port, fetchWithAuth } from "../api";
+import { baseUrl, port, fetchWithAuth } from "./api";
 
 // Hàm gọi API tìm kiếm theo keyword
 export async function searchItems(keyword: string) {
@@ -19,11 +19,7 @@ export async function searchAdvanced(params: { tags?: string[]; color?: string; 
   if (!response.ok) throw new Error('Network response was not ok');
   return response.json();
 }
-
-// Cách sử dụng:
-// import { searchItems, searchAdvanced } from '../api/search';
-// const data = await searchItems('từ khóa');
-// const data2 = await searchAdvanced({ tags: ['tag1'], color: 'red', sortBy: 'name' }); 
+ 
 
 export const statisticsUsage = `${baseUrl}:${port}/api/statistics/usage`; 
 

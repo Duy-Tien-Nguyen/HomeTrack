@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import Button from "./components/Button";
-import AppHeader from "./components/AppHeader";
-import { packagesGetAll, subscriptionsGetMy, subscriptionsRegister, fetchWithAuth } from "./api";
+import Button from "../components/common/Button";
+import AppHeader from "../components/layout/AppHeader";
+import { packagesGetAll, subscriptionsGetMy, subscriptionsRegister, fetchWithAuth } from "../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Package {
@@ -95,7 +95,6 @@ export default function UpgradePackage() {
         throw new Error((data && data.message) || "Failed to register subscription");
       }
       Alert.alert("Thành công", "Đăng ký gói thành công!");
-      console.log('NÂNG CẤP GÓI THÀNH CÔNG:', { packageId });
       // Optionally refetch current subscription to update UI
       const subscriptionResponse = await fetchWithAuth(subscriptionsGetMy);
       if (subscriptionResponse.ok) {

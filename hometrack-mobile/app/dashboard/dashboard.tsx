@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
-import AppHeader from "./components/AppHeader";
-import StatsCard from "./components/StatsCard";
-import ItemCard from "./components/ItemCard";
-import BottomNavigation from "./components/BottomNavigation";
-import { itemsDelete, fetchWithAuth, itemsGetAll, locationsGetAll, itemsByLocation } from "./api";
+import AppHeader from "../components/layout/AppHeader";
+import StatsCard from "../components/cards/StatsCard";
+import ItemCard from "../components/cards/ItemCard";
+import BottomNavigation from "../components/layout/BottomNavigation";
+import { itemsDelete, fetchWithAuth, itemsGetAll, locationsGetAll, itemsByLocation } from "../api/api";
 import { MaterialIcons } from "@expo/vector-icons";
 
 interface ItemType {
@@ -20,12 +20,13 @@ interface ItemType {
   name: string;
   description: string;
   tags: string[];
-  location: string | null;
+  location: string;
   locationId: number;
   imageUrl: string | null;
   quantity: number;
   createdAt: string;
   moderationStatus?: number; // 0: Pending, 1: Approved, 2: Reject
+  icon: keyof typeof MaterialIcons.glyphMap;
 }
 
 export default function Dashboard() {
@@ -133,19 +134,22 @@ export default function Dashboard() {
       setRecentItems(mappedItems);
 
       // 4. Tính toán các số liệu thống kê
-      const totalItemsCount = allItems.length;
+      const totalItemsCount = allItems.filter(item => item.moderationStatus !== 0).length;
 
       // Tính toán "Thêm gần đây" từ dữ liệu item thực tế
       const oneMonthAgo = new Date();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
       const recentItemsAdded = allItems.filter(item => item.createdAt && new Date(item.createdAt) > oneMonthAgo).length;
 
+      // Đếm số lượng item chờ duyệt (moderationStatus === 0)
+      const itemsNeedingUpdate = allItems.filter(item => item.moderationStatus === 0).length;
+
       setStatistics(prevStats => ({
         ...prevStats,
         totalItems: totalItemsCount,
         totalLocations: totalLocations,
         recentItemsAdded: recentItemsAdded,
-        itemsNeedingUpdate: 0,
+        itemsNeedingUpdate: itemsNeedingUpdate,
       }));
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard data");
@@ -194,32 +198,32 @@ export default function Dashboard() {
   };
 
   const handleDetailPress = (itemId: string) => {
-    router.push(`/productDetail?id=${itemId}`);
+    router.push(`/product/productDetail?id=${itemId}`);
   };
 
   const statsData = [
     {
       label: "Tổng số đồ vật",
       value: statistics.totalItems,
-      icon: "inventory",
+      icon: "inventory" as keyof typeof MaterialIcons.glyphMap,
       subLabel: "Tất cả đồ vật bạn đã quản lý"
     },
     {
       label: "Phòng / khu vực",
       value: statistics.totalLocations,
-      icon: "meeting-room",
+      icon: "meeting-room" as keyof typeof MaterialIcons.glyphMap,
       subLabel: "Tổng số phòng/khu vực"
     },
     {
       label: "Cần cập nhật",
       value: statistics.itemsNeedingUpdate,
-      icon: "update",
+      icon: "update" as keyof typeof MaterialIcons.glyphMap,
       subLabel: "Đồ vật cần kiểm tra lại"
     },
     {
       label: "Thêm gần đây",
       value: statistics.recentItemsAdded,
-      icon: "add-circle-outline",
+      icon: "add-circle-outline" as keyof typeof MaterialIcons.glyphMap,
       subLabel: "Đồ vật mới trong tháng"
     },
   ];
@@ -234,20 +238,20 @@ export default function Dashboard() {
         router.push("/searchScreen");
         break;
       case 2:
-        router.push("/locationManager");
+        router.push("/LocationManager");
         break;
       case 3:
-        router.push("/profile");
+        router.push("/profile/profile");
         break;
     }
   };
 
   const handleAddPress = () => {
-    router.push("/addItem");
+    router.push("/dashboard/addItem");
   };
 
   const handleAvatarPress = () => {
-    router.push("/profile");
+    router.push("/profile/profile");
   };
 
   return (

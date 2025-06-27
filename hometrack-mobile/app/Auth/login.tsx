@@ -11,11 +11,11 @@ import {
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import Button from "./components/Button";
-import LinkText from "./components/LinkText";
-import Logo from "./components/Logo";
-import InputField from "./components/InputField";
-import { login, fetchWithAuth, getMyProfile } from "./api";
+import Button from "../components/common/Button";
+import LinkText from "../components/common/LinkText";
+import Logo from "../components/common/Logo";
+import InputField from "../components/common/InputField";
+import { login, fetchWithAuth, getMyProfile } from "../api/api";
 
 export default function Login() {
   const router = useRouter();
@@ -73,7 +73,7 @@ export default function Login() {
       await AsyncStorage.setItem("accessToken", data.accessToken);
       await AsyncStorage.setItem("refreshToken", data.refreshToken);
 
-      // Lấy userId từ profile và lưu vào AsyncStorage
+      
       try {
         const profileRes = await getMyProfile();
         if (profileRes.ok) {
@@ -109,7 +109,7 @@ export default function Login() {
 
     const success = await loginApi(email, password);
     if (success) {
-      router.push("/dashboard");
+      router.push("/dashboard/dashboard");
     }
   };
 
@@ -137,15 +137,15 @@ export default function Login() {
         />
         <LinkText
           text="Quên mật khẩu?"
-          onPress={() => router.push("/forgotPassword")}
+          onPress={() => router.push("/Auth/ForgotPassword")}
           style={styles.forgot}
         />
-        <Button title="Đăng nhập" onPress={onLoginPress} loading={loading} />
+        <Button title="Đăng nhập" onPress={onLoginPress} disabled={loading} />
         <View style={styles.registerContainer}>
           <Text>Chưa có tài khoản? </Text>
           <LinkText
             text="Đăng ký tài khoản mới"
-            onPress={() => router.push("/register")}
+            onPress={() => router.push("/Auth/register")}
           />
         </View>
       </ScrollView>

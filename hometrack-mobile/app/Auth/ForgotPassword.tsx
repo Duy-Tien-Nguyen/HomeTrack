@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-import Button from "./components/Button";
-import LinkText from "./components/LinkText";
-import { sendOtp, verifyOtp } from "./api";
+import Button from "../components/common/Button";
+import LinkText from "../components/common/LinkText";
+import { sendOtp, verifyOtp } from "../api/api";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function ForgotPassword() {
     }
     setCodeError("");
     router.push({
-      pathname: "/reset-password",
+      pathname: "/Auth/resetPassword",
       params: { email, code },
     });
   };
@@ -112,7 +112,7 @@ export default function ForgotPassword() {
 
       <View style={styles.footer}>
         <Text>Đã nhớ mật khẩu? </Text>
-        <LinkText text="Đăng nhập" onPress={() => router.push("/login")} />
+        <LinkText text="Đăng nhập" onPress={() => router.push("/Auth/login")} />
       </View>
       <Text style={styles.supportText}>HOẶC</Text>
       <LinkText

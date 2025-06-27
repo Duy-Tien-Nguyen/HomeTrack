@@ -12,10 +12,10 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 
-import AppHeader from "./components/AppHeader";
-import Button from "./components/Button";
-import InputField from "./components/InputField";
-import { logout, getMyProfile, resetPassword, fetchWithAuth } from "./api";
+import AppHeader from "../components/layout/AppHeader";
+import Button from "../components/common/Button";
+import InputField from "../components/common/InputField";
+import { logout, getMyProfile, resetPassword, fetchWithAuth } from "../api/api";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await callLogout();
-          router.replace("/login");
+          router.replace("/Auth/login");
         },
       },
     ]);
@@ -171,7 +171,7 @@ export default function ProfileScreen() {
               title="Nâng cấp"
               onPress={() => {
                 closeForm();
-                router.push("/upgradePackage");
+                router.push("/upgrade/upgradePackage");
               }}
             />
           </>

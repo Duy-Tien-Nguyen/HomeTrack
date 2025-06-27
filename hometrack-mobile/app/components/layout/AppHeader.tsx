@@ -38,7 +38,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {rightComponent ? (
           rightComponent
         ) : (
-          // Chỉ render avatar khi có onAvatarPress
+          
           onAvatarPress ? (
             <TouchableOpacity
               style={styles.avatar}

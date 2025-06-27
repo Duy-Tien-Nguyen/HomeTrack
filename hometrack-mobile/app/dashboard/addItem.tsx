@@ -3,10 +3,10 @@ import { View, ScrollView, StyleSheet, Text, TouchableOpacity, Image, Alert, Mod
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
-import AppHeader from "./components/AppHeader";
-import InputField from "./components/InputField";
-import Button from "./components/Button";
-import { itemsCreate, fetchWithAuth, locationsGetAll, suggestTagsForImage, getMyProfile } from "./api";
+import AppHeader from "../components/layout/AppHeader";
+import InputField from "../components/common/InputField";
+import Button from "../components/common/Button";
+import { itemsCreate, fetchWithAuth, locationsGetAll, suggestTagsForImage, getMyProfile } from "../api/api";
 
 interface LocationType {
   id: string;
@@ -47,7 +47,7 @@ export default function AddItemScreen() {
           data = JSON.parse(responseText);
         } catch (e) {
           Alert.alert("Lỗi", "Không thể parse dữ liệu vị trí. Vui lòng kiểm tra server response.");
-          return; // Dừng lại nếu parse lỗi
+          return; 
         }
 
         if (response.ok) {
@@ -60,7 +60,7 @@ export default function AddItemScreen() {
       }
     };
     loadLocations();
-    // TẠM THỜI: luôn nhận diện là premium để test UI
+    
   }, []);
 
   useEffect(() => {
@@ -68,6 +68,8 @@ export default function AddItemScreen() {
       try {
         const res = await getMyProfile();
         const data = await res.json();
+        if (data) {
+        }
         let premium = false;
         if (
           data.subscription &&
@@ -118,7 +120,7 @@ export default function AddItemScreen() {
   const handleSubmit = async () => {
     let valid = true;
 
-    // Validation checks
+    
     if (!name.trim()) {
       setNameError("Tên không được để trống");
       valid = false;
@@ -135,22 +137,23 @@ export default function AddItemScreen() {
 
     if (!color.trim()) {
       setColorError("Màu sắc không được để trống");
-      valid = false; // Added color validation
+      valid = false; 
     } else {
       setColorError("");
     }
 
     if (!valid) return;
 
-    // Preparing data for API request
+    
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);
-    formData.append("tags", JSON.stringify(tags)); // Reverting to original: Convert tags to JSON string
-    formData.append("locationId", selectedLocation?.id || ""); // Gửi ID của vị trí đã chọn
+    
+    tags.forEach(tag => formData.append("tags", tag));
+    formData.append("locationId", selectedLocation ? String(Number(selectedLocation.id)) : "");
     formData.append("color", color);
 
-    // If image is selected, append it to form data
+    
     if (imageUri) {
       formData.append(
         "imageFile",
@@ -163,7 +166,7 @@ export default function AddItemScreen() {
     }
 
     try {
-      // Send POST request to create the item
+      
       const response = await fetchWithAuth(itemsCreate, {
         method: "POST",
         body: formData,
@@ -175,14 +178,14 @@ export default function AddItemScreen() {
       try {
         data = JSON.parse(responseText);
       } catch (e) {
-        // Nếu không parse được JSON, vẫn tiếp tục với thông báo lỗi chung
+        
       }
 
       if (response.ok) {
         setSaveSuccess(true);
         setTimeout(() => {
           setSaveSuccess(false);
-          router.push('/dashboard');
+          router.push('/dashboard/dashboard');
         }, 2000);
       } else {
         Alert.alert("Lỗi", data?.message || responseText || "Có lỗi xảy ra khi tạo đồ vật.");
@@ -220,10 +223,6 @@ export default function AddItemScreen() {
           onChangeText={setName}
           error={nameError}
         />
-
-        {saveSuccess && (
-          <Text style={styles.successText}>Lưu Thành công</Text>
-        )}
 
         <InputField
           label="Mô tả"

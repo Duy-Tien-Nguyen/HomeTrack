@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, FlatList, Modal, TouchableOpacity, Alert } from
 import { useRouter, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import AppHeader from "./components/AppHeader";
-import Button from "./components/Button";
-import InputField from "./components/InputField";
-import BottomNavigation from "./components/BottomNavigation";
-import { locationsCreate, fetchWithAuth, locationsGetAll, locationsDelete, itemsDelete, itemsByLocation } from "./api";
+import AppHeader from "./components/layout/AppHeader";
+import Button from "./components/common/Button";
+import InputField from "./components/common/InputField";
+import BottomNavigation from "./components/layout/BottomNavigation";
+import { locationsCreate, fetchWithAuth, locationsGetAll, locationsDelete, itemsDelete, itemsByLocation } from "./api/api";
 
 // Định nghĩa type cho location
 interface LocationType {
@@ -174,7 +174,7 @@ export default function LocationManager() {
   };
 
   const handleItemPress = (itemId: string) => {
-    router.push(`/productDetail?id=${itemId}`);
+    router.push(`./productDetail?id=${itemId}`);
   };
 
   const handleDeleteItem = async (itemId: number) => {
@@ -206,10 +206,10 @@ export default function LocationManager() {
 
   const handleTabPress = (index: number) => {
     switch(index) {
-      case 0: router.push("/dashboard"); break;
+      case 0: router.push("/dashboard/dashboard"); break;
       case 1: router.push("/searchScreen"); break;
       case 2: /* đang ở đây */ break;
-      case 3: router.push("/profile"); break;
+      case 3: router.push("/profile/profile"); break;
     }
   };
 
@@ -221,7 +221,7 @@ export default function LocationManager() {
         <BottomNavigation
           activeTab={2}
           onTabPress={handleTabPress}
-          onAddPress={() => router.push("/addItem")}
+          onAddPress={() => router.push("/dashboard/addItem")}
         />
       </View>
     );
@@ -235,7 +235,7 @@ export default function LocationManager() {
         <BottomNavigation
           activeTab={2}
           onTabPress={handleTabPress}
-          onAddPress={() => router.push("/addItem")}
+          onAddPress={() => router.push("/dashboard/addItem")}
         />
       </View>
     );
@@ -361,7 +361,7 @@ export default function LocationManager() {
       <BottomNavigation
         activeTab={2}
         onTabPress={handleTabPress}
-        onAddPress={() => router.push("/addItem")}
+        onAddPress={() => router.push("/dashboard/addItem")}
       />
     </View>
   );

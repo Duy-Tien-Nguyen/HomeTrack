@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-import Button from "./components/Button";
-import LinkText from "./components/LinkText";
-import Logo from "./components/Logo";
-import { register, sendOtp, verifyOtp } from "./api";
+import Button from "../components/common/Button";
+import LinkText from "../components/common/LinkText";
+import Logo from "../components/common/Logo";
+import { register, sendOtp, verifyOtp } from "../api/api";
 
 export default function Register() {
   const router = useRouter();
@@ -28,38 +28,12 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
-  // const [otp, setOtp] = useState("");
-  // const [otpError, setOtpError] = useState("");
-  // const [otpSent, setOtpSent] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
   };
 
-  // const onSendOtpPress = async () => {
-  //   if (!validateEmail(email)) {
-  //     setEmailError("Email không đúng, vui lòng nhập lại");
-  //     return;
-  //   }
-  //   setEmailError("");
-  //   try {
-  //     const res = await fetch(sendOtp, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ email }),
-  //     });
-  //     const data = await res.json();
-  //     if (!res.ok) {
-  //       Alert.alert("Lỗi", data.message || "Gửi OTP thất bại");
-  //       return;
-  //     }
-  //     setOtpSent(true);
-  //     Alert.alert("Thông báo", "Đã gửi OTP về email của bạn");
-  //   } catch (err) {
-  //     Alert.alert("Lỗi", "Không thể kết nối máy chủ");
-  //   }
-  // };
 
   const onCreateAccountPress = async () => {
     let valid = true;
@@ -117,9 +91,9 @@ export default function Register() {
     }
     resendOtp();
 
-    // Chuyển sang màn hình nhập OTP, truyền đầy đủ params
+    
     router.push({
-      pathname: "/VerifyOtpScreen", // Đúng route bạn đã tạo!
+      pathname: "/Auth/VerifyOtpScreen",
       params: {
         email,
         firstName,
@@ -136,7 +110,7 @@ export default function Register() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      // console.log("Resend OTP to:", email);
+      
       const data = await res.json();
       if (!res.ok) {
         Alert.alert("Lỗi", data.message || "Không gửi được mã OTP");
@@ -248,7 +222,7 @@ export default function Register() {
 
       <View style={styles.registerTextContainer}>
         <Text>Already have an account? </Text>
-        <LinkText text="Sign In" onPress={() => router.push("/login")} />
+        <LinkText text="Sign In" onPress={() => router.push("./login")} />
       </View>
     </ScrollView>
   );

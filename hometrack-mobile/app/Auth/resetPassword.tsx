@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 
-import InputField from "./components/InputField";
-import Button from "./components/Button";
-import Logo from "./components/Logo";
-import LinkText from "./components/LinkText";
-import { forgotPassword } from "./api";
+import InputField from "../components/common/InputField";
+import Button from "../components/common/Button";
+import Logo from "../components/common/Logo";
+import LinkText from "../components/common/LinkText";
+import { forgotPassword } from "../api/api";
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -57,7 +57,7 @@ export default function ResetPassword() {
         return;
       }
       Alert.alert("Thành công", "Mật khẩu của bạn đã được đặt lại", [
-        { text: "OK", onPress: () => router.push("/login") },
+        { text: "OK", onPress: () => router.push("/Auth/login") },
       ]);
     } catch (e) {
       Alert.alert("Lỗi", "Không thể đặt lại mật khẩu, vui lòng thử lại.");
@@ -91,7 +91,7 @@ export default function ResetPassword() {
 
       <View style={styles.footer}>
         <Text>Đã nhớ mật khẩu? </Text>
-        <LinkText text="Đăng nhập" onPress={() => router.push("/login")} />
+        <LinkText text="Đăng nhập" onPress={() => router.push("/Auth/login")} />
       </View>
     </ScrollView>
   );

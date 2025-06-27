@@ -21,7 +21,7 @@ export default function Button({
   size = 'medium'
 }: ButtonProps) {
   
-  // Get base styles based on variant
+  
   const getVariantStyles = () => {
     switch (variant) {
       case 'secondary':
@@ -42,7 +42,7 @@ export default function Button({
     }
   };
 
-  // Get size styles
+  
   const getSizeStyles = () => {
     switch (size) {
       case 'small':

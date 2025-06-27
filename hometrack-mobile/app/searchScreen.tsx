@@ -10,12 +10,12 @@ import {
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
-import AppHeader from "./components/AppHeader";
-import SearchInput from "./components/SearchInput";
-import FilterTags from "./components/FilterTags";
-import SearchResultItem from "./components/SearchResultItem";
-import BottomNavigation from "./components/BottomNavigation";
-import { searchItems, searchAdvanced, fetchWithAuth, itemsDelete, getMyProfile, subscriptionsGetMy } from "./api";
+import AppHeader from "./components/layout/AppHeader";
+import SearchInput from "./components/search/SearchInput";
+import FilterTags from "./components/search/FilterTags";
+import SearchResultItem from "./components/search/SearchResultItem";
+import BottomNavigation from "./components/layout/BottomNavigation";
+import { searchItems, searchAdvanced, fetchWithAuth, itemsDelete, getMyProfile, subscriptionsGetMy } from "./api/api";
 
 // Tags dùng cho filter
 const mockFilterTags = [
@@ -196,7 +196,7 @@ export default function SearchScreen() {
   };
 
   const handleItemPress = (itemId: string) => {
-    router.push(`/productDetail?id=${itemId}`);
+    router.push(`/product/productDetail?id=${itemId}`);
   };
 
   const handleDeleteItem = async (itemId: number) => {
@@ -217,28 +217,28 @@ export default function SearchScreen() {
   };
 
   const handleAddPress = () => {
-    router.push("/addItem");
+    router.push("/dashboard/addItem");
   };
 
   const handleTabPress = (index: number) => {
     setActiveTab(index);
     switch (index) {
       case 0:
-        router.push("/dashboard");
+        router.push("/dashboard/dashboard");
         break;
       case 1:
         break;
       case 2:
-        router.push("/locationManager");
+        router.push("/LocationManager");
         break;
       case 3:
-        router.push("/profile");
+        router.push("/profile/profile");
         break;
     }
   };
 
   const handleBackPress = () => router.back();
-  const handleAvatarPress = () => router.push("/profile");
+  const handleAvatarPress = () => router.push("/profile/profile");
 
   return (
     <SafeAreaView style={styles.container}>

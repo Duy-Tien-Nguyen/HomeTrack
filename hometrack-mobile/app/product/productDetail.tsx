@@ -3,10 +3,10 @@ import { View, ScrollView, StyleSheet, Text, Image, TouchableOpacity, Alert, Mod
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AppHeader from "./components/AppHeader";
-import InputField from "./components/InputField";
-import Button from "./components/Button";
-import { fetchWithAuth, itemsGetById, itemsUpdate, locationsGetById, baseUrl, port, locationsGetAll, itemImage } from "./api";
+import AppHeader from "../components/layout/AppHeader";
+import InputField from "../components/common/InputField";
+import Button from "../components/common/Button";
+import { fetchWithAuth, itemsGetById, itemsUpdate, locationsGetById, baseUrl, port, locationsGetAll, itemImage } from "../api/api";
 
 interface LocationType {
   id: number;
@@ -240,7 +240,7 @@ export default function ProductDetail() {
           { text: "Đóng", style: "cancel" },
           { 
             text: "Nâng cấp", 
-            onPress: () => router.push("/upgrade-package")
+            onPress: () => router.push("/upgrade/upgradePackage")
           }
         ]
       );
@@ -316,10 +316,8 @@ export default function ProductDetail() {
         formData.append("Color", color.trim());
       }
       const url = itemsUpdate(itemId);
-      console.log("[onSave] PUT", url);
       for (let pair of formData.entries()) {
-        console.log(`[onSave] formData: ${pair[0]} =`, pair[1]);
-      }
+    }
       const response = await fetchWithAuth(url, {
         method: "PUT",
         body: formData,
@@ -336,7 +334,7 @@ export default function ProductDetail() {
       }
       Alert.alert("Thành công", "Đồ vật đã được cập nhật.");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/dashboard/dashboard");
       }, 1000);
     } catch (err: any) {
       console.error("[onSave] Network/API error:", err, err?.stack);

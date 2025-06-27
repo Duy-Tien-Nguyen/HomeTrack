@@ -9,18 +9,18 @@ export default function Layout() {
       }}
     >
       <Stack.Screen name="index" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="forgotPassword" />
-      <Stack.Screen name="resetPassword" />
-      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="Auth/login" />
+      <Stack.Screen name="Auth/register" />
+      <Stack.Screen name="Auth/ForgotPassword" />
+      <Stack.Screen name="Auth/resetPassword" />
+      <Stack.Screen name="dashboard/dashboard" />
       <Stack.Screen name="searchScreen" />
-      <Stack.Screen name="addItem" />
-      <Stack.Screen name="locationManager" />
-      <Stack.Screen name="productDetail" />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="upgradePackage" />
-      <Stack.Screen name="VerifyOtpScreen" />
+      <Stack.Screen name="dashboard/addItem" />
+      <Stack.Screen name="LocationManager" />
+      <Stack.Screen name="product/productDetail" />
+      <Stack.Screen name="profile/profile" />
+      <Stack.Screen name="upgrade/upgradePackage" />
+      <Stack.Screen name="Auth/VerifyOtpScreen" />
     </Stack>
   );
 }

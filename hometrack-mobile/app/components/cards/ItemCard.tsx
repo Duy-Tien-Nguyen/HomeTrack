@@ -18,7 +18,10 @@ const ItemCard: React.FC<ItemCardProps> = ({ id, icon, name, location, moderatio
 
   let statusText = null;
   let statusColor = undefined;
-  if (moderationStatus === 1) {
+  if (moderationStatus === 0) {
+    statusText = 'Chờ duyệt';
+    statusColor = 'orange';
+  } else if (moderationStatus === 1) {
     statusText = 'Đã duyệt';
     statusColor = 'green';
   } else if (moderationStatus === 2) {

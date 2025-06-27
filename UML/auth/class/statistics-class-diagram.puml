@@ -1,0 +1,121 @@
+@startuml StatisticsClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Thống Kê (FR5.1, FR5.2)
+
+package "Presentation Layer" {
+    class StatisticsController {
+        - IStatisticsService _statisticsService
+        - ILogger<StatisticsController> _logger
+        + GetItemUsageStats(timeframe): Task<IActionResult>
+        + GetTopMovedItems(timeframe): Task<IActionResult>
+        + GetLeastUsedItems(timeframe): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IStatisticsService {
+        + GetItemUsageStatsAsync(timeframe, userId): Task<ServiceResult<UsageStatsResponseDto>>
+        + GetTopMovedItemsAsync(timeframe, userId): Task<ServiceResult<IEnumerable<RankedItemDto>>>
+        + GetLeastUsedItemsAsync(timeframe, userId): Task<ServiceResult<IEnumerable<RankedItemDto>>>
+    }
+
+    class StatisticsService {
+        - ApplicationDBContext _context
+        + StatisticsService(context)
+        + GetItemUsageStatsAsync(timeframe, userId): Task<ServiceResult<UsageStatsResponseDto>>
+        + GetTopMovedItemsAsync(timeframe, userId): Task<ServiceResult<IEnumerable<RankedItemDto>>>
+        + GetLeastUsedItemsAsync(timeframe, userId): Task<ServiceResult<IEnumerable<RankedItemDto>>>
+        - GetStartDate(timeframe): DateTime
+        - CheckPremiumUser(userId): Task<ServiceResult<bool>>
+    }
+
+    class "ServiceResult<T>" as ServiceResult {
+        + IsSuccess: bool
+        + ErrorMessage: string?
+        + Data: T?
+        + Success(data): ServiceResult<T>
+        + Failure(errorMessage): ServiceResult<T>
+    }
+}
+
+package "Domain Layer" {
+    class User {
+        + Id: int
+        + Role: Role
+    }
+
+    class StatsReport {
+        + Id: int
+        + UserId: int
+        + ItemId: int?
+        + ActionType: ActionType
+        + Timestamp: DateTime
+    }
+
+    class Item {
+        + Id: int
+        + Name: string
+        + UserId: int
+        + DeletedAt: DateTime?
+    }
+
+    enum ActionType {
+        Created
+        Edited
+        Moved
+        Searched
+        Deleted
+    }
+
+    enum Role {
+        basic
+        premium
+        admin
+    }
+}
+
+package "Infrastructure Layer" {
+    class ApplicationDBContext {
+        + Users: DbSet<User>
+        + StatsReports: DbSet<StatsReport>
+        + Items: DbSet<Item>
+        + SaveChangesAsync(): Task<int>
+    }
+}
+
+package "Data Transfer Objects" {
+    class UsageStatsResponseDto {
+        + ActionCounts: Dictionary<string, int>
+    }
+
+    class RankedItemDto {
+        + ItemId: int
+        + ItemName: string
+        + Count: int
+    }
+}
+
+' Relationships'
+StatisticsController ..> IStatisticsService : uses
+StatisticsController ..> ILogger : uses
+
+StatisticsService ..|> IStatisticsService : implements
+StatisticsService ..> ApplicationDBContext : uses
+StatisticsService ..> User : uses
+StatisticsService ..> StatsReport : uses
+StatisticsService ..> Item : uses
+StatisticsService ..> ActionType : uses
+StatisticsService ..> Role : uses
+StatisticsService ..> ServiceResult : returns
+
+ApplicationDBContext --o User : manages
+ApplicationDBContext --o StatsReport : manages
+ApplicationDBContext --o Item : manages
+
+StatsReport --> ActionType : uses
+User --> Role : uses
+
+ServiceResult <|-- UsageStatsResponseDto : T
+ServiceResult <|-- "IEnumerable<RankedItemDto>" : T
+
+@enduml

@@ -1,0 +1,161 @@
+@startuml RegistrationClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Đăng Ký
+
+package "Presentation Layer" {
+    class RegistrationController {
+        - IRegistrationService _regService
+        - ILogger<RegistrationController> _logger
+        + Register(RegisterRequest req): Task<IActionResult>
+        + Verify(SubmitOTPRequest req): Task<IActionResult>
+        + ResendOTP(ResendOTPRequest req): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IRegistrationService {
+        + RegisterAsync(email, password, firstName, lastName): Task
+        + VerifyOTP(email, token): Task<bool>
+        + ResendOTP(email): Task<bool>
+    }
+
+    class RegistrationService {
+        - IUserRepository _userRepo
+        - ITokenService _tokenService
+        - IEmailService _emailService
+        - IPasswordHasher<User> _passwordHasher
+        - ApplicationDBContext _context
+        + RegisterAsync(email, password, firstName, lastName): Task
+        + VerifyOTP(email, token): Task<bool>
+        + ResendOTP(email): Task<bool>
+    }
+
+    interface ITokenService {
+        + CreateTokenAsync(userId): Task<string>
+        + VerifyTokenAsync(userId, token): Task<bool>
+        + RevokeAllUserOTP(userId): Task
+    }
+
+    class TokenService {
+        - ITokenRepository _tokenRepo
+        + CreateTokenAsync(userId): Task<string>
+        + VerifyTokenAsync(userId, token): Task<bool>
+        + RevokeAllUserOTP(userId): Task
+    }
+
+    interface IEmailService {
+        + sendOTPEmail(email, token): Task<bool>
+    }
+
+    class EmailService {
+        + sendOTPEmail(email, token): Task<bool>
+    }
+}
+
+package "Domain Layer" {
+    class User {
+        + Id: int
+        + Email: string
+        + Password: string
+        + FirstName: string
+        + LastName: string
+        + Role: Role
+        + Status: UserStatus
+        + CreatedAt: DateTime
+        + UpdatedAt: DateTime
+    }
+
+    class ConfirmationToken {
+        + Id: int
+        + UserId: int
+        + Token: string
+        + ExpiresAt: DateTime
+        + Used: boolean
+    }
+
+    enum UserStatus {
+        Active
+        Banned
+        Pending
+    }
+
+    enum Role {
+        basic
+        premium
+        admin
+    }
+}
+
+package "Infrastructure Layer" {
+    interface IUserRepository {
+        + GetByEmailAsync(email): Task<User>
+        + AddAsync(User user): Task<User>
+        + ActivateUserAsync(userId): Task
+        + SaveChangesAsync(): Task
+    }
+
+    class UserRepository {
+        - ApplicationDBContext _context
+        + GetByEmailAsync(email): Task<User>
+        + AddAsync(User user): Task<User>
+        + ActivateUserAsync(userId): Task
+        + SaveChangesAsync(): Task
+    }
+
+    interface ITokenRepository {
+        + AddAsync(ConfirmationToken token): Task
+        + GetByUserIdAndTokenAsync(userId, token): Task<ConfirmationToken>
+        + InvalidateActiveOtpTokensForUserAsync(userId): Task
+        + SaveChangesAsync(): Task
+    }
+
+    class TokenRepository {
+        - ApplicationDBContext _context
+        + AddAsync(ConfirmationToken token): Task
+        + GetByUserIdAndTokenAsync(userId, token): Task<ConfirmationToken>
+        + InvalidateActiveOtpTokensForUserAsync(userId): Task
+        + SaveChangesAsync(): Task
+    }
+
+    class ApplicationDBContext {
+        + Users: DbSet<User>
+        + ConfirmationTokens: DbSet<ConfirmationToken>
+        + SaveChangesAsync(): Task<int>
+    }
+
+    interface IPasswordHasher<T> {
+        + HashPassword(user, password): string
+        + VerifyHashedPassword(user, hashedPassword, providedPassword): PasswordVerificationResult
+    }
+}
+
+' Relationships'
+RegistrationController ..> IRegistrationService : uses
+RegistrationController ..> ILogger : uses
+
+RegistrationService ..|> IRegistrationService : implements
+RegistrationService ..> IUserRepository : uses
+RegistrationService ..> ITokenService : uses
+RegistrationService ..> IEmailService : uses
+RegistrationService ..> IPasswordHasher : uses
+RegistrationService ..> ApplicationDBContext : interacts with
+
+TokenService ..|> ITokenService : implements
+TokenService ..> ITokenRepository : uses
+
+EmailService ..|> IEmailService : implements
+
+UserRepository ..|> IUserRepository : implements
+UserRepository ..> ApplicationDBContext : uses
+
+TokenRepository ..|> ITokenRepository : implements
+TokenRepository ..> ApplicationDBContext : uses
+
+User "1" -- "0..*" ConfirmationToken : has
+User --> UserStatus : uses
+User --> Role : uses
+
+ApplicationDBContext --o User : manages
+ApplicationDBContext --o ConfirmationToken : manages
+
+@enduml

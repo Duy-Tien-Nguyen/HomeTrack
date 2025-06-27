@@ -1,0 +1,118 @@
+@startuml ModerationFlows
+
+title Luồng Chức Năng Kiểm Duyệt Nội Dung (FR7.1 & FR7.2)
+
+actor Admin
+participant ModerationController
+participant IModerationRepository
+participant ModerationRepository
+database ApplicationDBContext
+
+group "FR7.1: Lấy Danh Sách Mục Đang Chờ Duyệt"
+    Admin -> ModerationController: GET /api/moderation/pending-items (PagedQueryParameters)
+    activate ModerationController
+
+    ModerationController -> IModerationRepository: GetPendingItemsAsync(queryParameters)
+    activate IModerationRepository
+
+    IModerationRepository -> ModerationRepository: GetPendingItemsAsync(queryParameters)
+    activate ModerationRepository
+
+    ModerationRepository -> ApplicationDBContext: Query Items (ImageModerationStatus == Pending)
+    activate ApplicationDBContext
+    ApplicationDBContext --> ModerationRepository: pendingItemsData
+    deactivate ApplicationDBContext
+
+    ModerationRepository -> ApplicationDBContext: Query Tags (ModerationStatus == Pending)
+    activate ApplicationDBContext
+    ApplicationDBContext --> ModerationRepository: pendingTagsData
+    deactivate ApplicationDBContext
+
+    ModerationRepository -> ModerationRepository: Map data to PagedResultDto<PendingItemDto>
+    note right
+        Includes joining with Users for email,
+        and ItemTags for associated tags.
+    end note
+
+    ModerationRepository --> IModerationRepository: PagedResultDto<PendingItemDto>
+    deactivate ModerationRepository
+
+    IModerationRepository --> ModerationController: PagedResultDto<PendingItemDto>
+    deactivate IModerationRepository
+
+    ModerationController --> Admin: 200 OK (PagedResultDto<PendingItemDto>)
+    deactivate ModerationController
+end
+
+group "FR7.2: Phê Duyệt hoặc Xóa Nội Dung Vi Phạm"
+    Admin -> ModerationController: PUT /api/moderation/item/{itemId}/moderate (ModerateItemRequestDto)
+    activate ModerationController
+
+    ModerationController -> ModerationController: Lấy adminUserId từ Claims
+    alt adminUserId không hợp lệ
+        ModerationController --> Admin: 401 Unauthorized
+        deactivate ModerationController
+        return
+    end
+
+    ModerationController -> IModerationRepository: GetItemByIdForModerationAsync(itemId)
+    activate IModerationRepository
+
+    IModerationRepository -> ModerationRepository: GetItemByIdForModerationAsync(itemId)
+    activate ModerationRepository
+
+    ModerationRepository -> ApplicationDBContext: Query Item (Id == itemId)
+    activate ApplicationDBContext
+    ApplicationDBContext --> ModerationRepository: itemToModerate (bao gồm User, ItemTags, Tag)
+    deactivate ApplicationDBContext
+
+    ModerationRepository --> IModerationRepository: itemToModerate
+    deactivate ModerationRepository
+
+    IModerationRepository --> ModerationController: itemToModerate
+    deactivate IModerationRepository
+
+    alt itemToModerate == null
+        ModerationController --> Admin: 404 Not Found ("Không tìm thấy Item...")
+        deactivate ModerationController
+        return
+    end
+
+    alt request.NewStatus không hợp lệ (khác Approved/Reject)
+        ModerationController --> Admin: 400 Bad Request ("Trạng thái không hợp lệ...")
+        deactivate ModerationController
+        return
+    end
+
+    ModerationController -> itemToModerate: Cập nhật ImageModerationStatus, ModerationNote, ModeratedAt, ModerationByUserId
+
+    alt itemToModerate.ImageModerationStatus == Approved
+        loop for each itemTag in itemToModerate.ItemTags
+            ModerationController -> itemTag.Tag: Cập nhật ModerationStatus = Approved (nếu đang Pending)
+        end
+    end
+
+    ModerationController -> IModerationRepository: UpdateItemAsync(itemToModerate)
+    activate IModerationRepository
+
+    IModerationRepository -> ModerationRepository: UpdateItemAsync(itemToModerate)
+    activate ModerationRepository
+    ModerationRepository -> ApplicationDBContext: SaveChangesAsync()
+    activate ApplicationDBContext
+    ApplicationDBContext --> ModerationRepository: success
+    deactivate ApplicationDBContext
+    ModerationRepository --> IModerationRepository: success
+    deactivate ModerationRepository
+
+    IModerationRepository --> ModerationController: success
+    deactivate IModerationRepository
+
+    alt success
+        ModerationController --> Admin: 200 OK ("Cập nhật thành công")
+    else failure
+        ModerationController --> Admin: 500 Internal Server Error ("Lỗi xảy ra khi cập nhật...")
+    end
+    deactivate ModerationController
+end
+
+@enduml

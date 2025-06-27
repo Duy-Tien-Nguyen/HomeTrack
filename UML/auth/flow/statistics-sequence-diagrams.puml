@@ -1,0 +1,153 @@
+@startuml GetItemUsageStatsFlow
+title Luồng Lấy Thống Kê Sử Dụng Đồ Vật (FR5.1)
+
+actor Client
+participant StatisticsController
+participant IStatisticsService
+participant StatisticsService
+participant ApplicationDBContext
+
+Client -> StatisticsController: GET /api/statistics/usage-stats (timeframe)
+activate StatisticsController
+
+StatisticsController -> StatisticsController: Lấy userId từ Access Token
+
+StatisticsController -> IStatisticsService: GetItemUsageStatsAsync(timeframe, userId)
+activate IStatisticsService
+
+StatisticsService -> StatisticsService: CheckPremiumUser(userId)
+activate StatisticsService
+StatisticsService -> ApplicationDBContext: Query Users
+activate ApplicationDBContext
+ApplicationDBContext --> StatisticsService: user
+deactivate ApplicationDBContext
+StatisticsService --> IStatisticsService: ServiceResult<bool> (IsSuccess/ErrorMessage)
+deactivate StatisticsService
+
+alt Người dùng không phải Premium/Admin
+    IStatisticsService --> StatisticsController: Failure("Tính năng này chỉ dành cho Premium.")
+    deactivate IStatisticsService
+    StatisticsController --> Client: 403 Forbidden
+    deactivate StatisticsController
+else Người dùng Premium/Admin
+    StatisticsService -> StatisticsService: GetStartDate(timeframe)
+    StatisticsService --> StatisticsService: startDate
+
+    StatisticsService -> ApplicationDBContext: Query StatsReports
+    activate ApplicationDBContext
+    ApplicationDBContext --> StatisticsService: actionCounts (grouped by ActionType)
+    deactivate ApplicationDBContext
+
+    StatisticsService -> StatisticsService: Tạo UsageStatsResponseDto
+    StatisticsService --> IStatisticsService: Success(responseDto)
+    deactivate IStatisticsService
+
+    StatisticsController --> Client: 200 OK (UsageStatsResponseDto)
+    deactivate StatisticsController
+end
+@enduml
+
+
+@startuml GetTopMovedItemsFlow
+title Luồng Lấy Top 5 Đồ Vật Được Di Chuyển Nhiều Nhất (FR5.2)
+
+actor Client
+participant StatisticsController
+participant IStatisticsService
+participant StatisticsService
+participant ApplicationDBContext
+
+Client -> StatisticsController: GET /api/statistics/top-moved-items (timeframe)
+activate StatisticsController
+
+StatisticsController -> StatisticsController: Lấy userId từ Access Token
+
+StatisticsController -> IStatisticsService: GetTopMovedItemsAsync(timeframe, userId)
+activate IStatisticsService
+
+StatisticsService -> StatisticsService: CheckPremiumUser(userId)
+activate StatisticsService
+StatisticsService -> ApplicationDBContext: Query Users
+activate ApplicationDBContext
+ApplicationDBContext --> StatisticsService: user
+deactivate ApplicationDBContext
+StatisticsService --> IStatisticsService: ServiceResult<bool>
+deactivate StatisticsService
+
+alt Người dùng không phải Premium/Admin
+    IStatisticsService --> StatisticsController: Failure("Tính năng này chỉ dành cho Premium.")
+    deactivate IStatisticsService
+    StatisticsController --> Client: 403 Forbidden
+    deactivate StatisticsController
+else Người dùng Premium/Admin
+    StatisticsService -> StatisticsService: GetStartDate(timeframe)
+    StatisticsService --> StatisticsService: startDate
+
+    StatisticsService -> ApplicationDBContext: Query StatsReports (filter Moved, group by ItemId, take 5)
+    activate ApplicationDBContext
+    ApplicationDBContext -> ApplicationDBContext: Join with Items để lấy ItemName
+    ApplicationDBContext --> StatisticsService: topMovedItems (IEnumerable<RankedItemDto>)
+    deactivate ApplicationDBContext
+
+    StatisticsService --> IStatisticsService: Success(topMovedItems)
+    deactivate IStatisticsService
+
+    StatisticsController --> Client: 200 OK (IEnumerable<RankedItemDto>)
+    deactivate StatisticsController
+end
+@enduml
+
+
+@startuml GetLeastUsedItemsFlow
+title Luồng Lấy Top 5 Đồ Vật Ít Được Sử Dụng Nhất (FR5.2)
+
+actor Client
+participant StatisticsController
+participant IStatisticsService
+participant StatisticsService
+participant ApplicationDBContext
+
+Client -> StatisticsController: GET /api/statistics/least-used-items (timeframe)
+activate StatisticsController
+
+StatisticsController -> StatisticsController: Lấy userId từ Access Token
+
+StatisticsController -> IStatisticsService: GetLeastUsedItemsAsync(timeframe, userId)
+activate IStatisticsService
+
+StatisticsService -> StatisticsService: CheckPremiumUser(userId)
+activate StatisticsService
+StatisticsService -> ApplicationDBContext: Query Users
+activate ApplicationDBContext
+ApplicationDBContext --> StatisticsService: user
+deactivate ApplicationDBContext
+StatisticsService --> IStatisticsService: ServiceResult<bool>
+deactivate StatisticsService
+
+alt Người dùng không phải Premium/Admin
+    IStatisticsService --> StatisticsController: Failure("Tính năng này chỉ dành cho Premium.")
+    deactivate IStatisticsService
+    StatisticsController --> Client: 403 Forbidden
+    deactivate StatisticsController
+else Người dùng Premium/Admin
+    StatisticsService -> StatisticsService: GetStartDate(timeframe)
+    StatisticsService --> StatisticsService: startDate
+
+    StatisticsService -> ApplicationDBContext: Query Items (user's non-deleted items)
+    activate ApplicationDBContext
+    ApplicationDBContext --> StatisticsService: userItems
+    deactivate ApplicationDBContext
+
+    StatisticsService -> ApplicationDBContext: Query StatsReports (actions in timeframe)
+    activate ApplicationDBContext
+    ApplicationDBContext --> StatisticsService: itemUsageCounts (Dictionary<ItemId, Count>)
+    deactivate ApplicationDBContext
+
+    StatisticsService -> StatisticsService: Kết hợp userItems và itemUsageCounts, sắp xếp tăng dần, lấy top 5
+    StatisticsService --> IStatisticsService: Success(leastUsedItems)
+    deactivate IStatisticsService
+
+    StatisticsController --> Client: 200 OK (IEnumerable<RankedItemDto>)
+    deactivate StatisticsController
+end
+@enduml

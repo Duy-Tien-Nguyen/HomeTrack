@@ -9,7 +9,7 @@ package "Domain Entities" {
         +String FirstName
         +String LastName
         +Role role
-        +string RefreshToken
+        +String RefreshToken
         +UserStatus status
         +DateTime createdAt
         +DateTime updatedAt

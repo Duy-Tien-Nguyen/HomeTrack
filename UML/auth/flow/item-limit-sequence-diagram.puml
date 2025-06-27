@@ -1,0 +1,53 @@
+@startuml AdminChangeItemLimitFlow
+
+title Luồng Admin Thay Đổi Giới Hạn Đồ Vật
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+participant ISystemSettingRepository
+participant SystemSettingRepository
+database ApplicationDBContext
+
+Admin -> AdminController: POST /api/admin/package/change-{packageType}-limit/{newLimit}
+activate AdminController
+
+AdminController -> IAdminService: ChangeItemLimit(packageType, newLimit)
+activate IAdminService
+
+AdminService -> ISystemSettingRepository: GetByKeyAsync(itemLimitKey)
+activate ISystemSettingRepository
+
+ISystemSettingRepository -> SystemSettingRepository: GetByKeyAsync(itemLimitKey)
+activate SystemSettingRepository
+
+SystemSettingRepository -> ApplicationDBContext: Query SystemSettings (s => s.SettingKey == itemLimitKey)
+activate ApplicationDBContext
+ApplicationDBContext --> SystemSettingRepository: currentLimitSetting
+deactivate ApplicationDBContext
+
+SystemSettingRepository --> ISystemSettingRepository: currentLimitSetting
+deactivate SystemSettingRepository
+
+ISystemSettingRepository --> AdminService: currentLimitSetting
+deactivate ISystemSettingRepository
+
+alt currentLimitSetting != null
+    AdminService -> ApplicationDBContext: Update SystemSettings (s => s.Id == currentLimitSetting.Id, s.SettingValue = newLimit)
+    activate ApplicationDBContext
+    ApplicationDBContext --> AdminService: RowsAffected
+    deactivate ApplicationDBContext
+
+    AdminService --> IAdminService: true (thành công)
+    deactivate IAdminService
+    AdminController --> Admin: 200 OK (message: "Giới hạn gói ... đã được cập nhật ...")
+    deactivate AdminController
+else currentLimitSetting == null
+    AdminService --> IAdminService: false (thất bại)
+    deactivate IAdminService
+    AdminController --> Admin: 400 Bad Request (message: "Thất bại khi thay đổi giới hạn gói ...")
+    deactivate AdminController
+end
+
+@enduml

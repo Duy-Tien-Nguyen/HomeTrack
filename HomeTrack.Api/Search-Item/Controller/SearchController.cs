@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using HomeTrack.Api.Request;
 
 
-namespace HomeTrack.Api.Controller
+namespace HomeTrack.Api.Controllers
 {
   [ApiController]
   [Route("api/search")]
@@ -44,7 +44,7 @@ namespace HomeTrack.Api.Controller
     }
 
     [Authorize]
-    [HttpGet("advanced")]
+    [HttpPost("advanced")]
     public async Task<IActionResult> AdvancedSearchItems([FromBody] AdvancedSearchRequestDto req)
     {
       // Extract userId from claims

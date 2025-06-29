@@ -1,0 +1,96 @@
+@startuml LoginLogoutFlow
+
+title Luồng Đăng Nhập và Đăng Xuất
+
+actor Client
+participant AuthController
+participant AuthService
+participant IUserRepository
+participant IPasswordHasher
+participant IJwtService
+participant ITokenService
+database ApplicationDBContext
+
+== Đăng Nhập ==
+
+Client -> AuthController: POST /api/auth/login (email, password)
+activate AuthController
+
+AuthController -> AuthService: LoginAsync(email, password)
+activate AuthService
+
+AuthService -> IUserRepository: GetByEmailAsync(email)
+activate IUserRepository
+IUserRepository --> AuthService: user (nếu tồn tại)
+deactivate IUserRepository
+
+alt Người dùng không tồn tại hoặc mật khẩu không đúng
+    AuthService --> AuthController: Exception/Error (ví dụ: "Thông tin đăng nhập không hợp lệ")
+    deactivate AuthService
+    AuthController --> Client: 401 Unauthorized
+    deactivate AuthController
+else Thông tin đăng nhập hợp lệ
+    AuthService -> IPasswordHasher: VerifyPassword(user, password)
+    activate IPasswordHasher
+    IPasswordHasher --> AuthService: true/false
+    deactivate IPasswordHasher
+
+    alt Mật khẩu không đúng
+        AuthService --> AuthController: Exception/Error (ví dụ: "Thông tin đăng nhập không hợp lệ")
+        deactivate AuthService
+        AuthController --> Client: 401 Unauthorized
+        deactivate AuthController
+    else Mật khẩu đúng
+        AuthService -> IJwtService: GenerateAccessToken(user)
+        activate IJwtService
+        IJwtService --> AuthService: accessToken
+        deactivate IJwtService
+
+        AuthService -> IJwtService: GenerateRefreshToken(user)
+        activate IJwtService
+        IJwtService --> AuthService: refreshToken
+        deactivate IJwtService
+
+        AuthService -> IUserRepository: Update(user with refreshToken)
+        activate IUserRepository
+        IUserRepository --> AuthService: thành công
+        deactivate IUserRepository
+
+        AuthService --> AuthController: accessToken, refreshToken
+        deactivate AuthService
+        AuthController --> Client: 200 OK (accessToken, refreshToken)
+        deactivate AuthController
+    end
+end
+
+== Đăng Xuất ==
+
+Client -> AuthController: POST /api/auth/logout (userId)
+activate AuthController
+
+AuthController -> AuthService: LogoutAsync(userId)
+activate AuthService
+
+AuthService -> IUserRepository: GetByIdAsync(userId)
+activate IUserRepository
+IUserRepository --> AuthService: user (nếu tồn tại)
+deactivate IUserRepository
+
+alt Người dùng không tồn tại
+    AuthService --> AuthController: false
+    deactivate AuthService
+    AuthController --> Client: 400 Bad Request
+    deactivate AuthController
+else Người dùng tồn tại
+    AuthService -> IUserRepository: Update(user with refreshToken = null)
+    activate IUserRepository
+    IUserRepository --> AuthService: thành công
+    deactivate IUserRepository
+
+    AuthService --> AuthController: true
+    deactivate AuthService
+    AuthController --> Client: 200 OK
+    deactivate AuthController
+end
+
+@enduml

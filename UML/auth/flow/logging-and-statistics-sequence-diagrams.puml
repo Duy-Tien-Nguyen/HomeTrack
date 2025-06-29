@@ -1,0 +1,87 @@
+@startuml AdminViewLogsFlow
+
+title Luồng Admin Xem Logs Hệ Thống (FR8.1)
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+database ApplicationDBContext
+
+Admin -> AdminController: GET /api/admin/logs?userId=...&actionType=...
+activate AdminController
+
+AdminController -> IAdminService: GetSystemLogsAsync(userId, actionType, startTime, endTime)
+activate IAdminService
+
+AdminService -> ApplicationDBContext: Query StatsReports with filters
+activate ApplicationDBContext
+note right
+    - Lọc theo UserId (nếu có)
+    - Lọc theo ActionType (nếu có)
+    - Lọc theo khoảng thời gian (nếu có)
+end note
+ApplicationDBContext --> AdminService: logs (IEnumerable<StatsReport>)
+deactivate ApplicationDBContext
+
+AdminService --> IAdminService: ServiceResult.Success(logs)
+deactivate IAdminService
+
+alt result.IsSuccess
+    AdminController --> Admin: 200 OK (IEnumerable<StatsReport>)
+else !result.IsSuccess
+    AdminController --> Admin: 500 Internal Server Error (result.ErrorMessage)
+end
+deactivate AdminController
+
+@enduml
+
+@startuml AdminViewStatisticsChartFlow
+
+title Luồng Admin Xem Biểu Đồ Thống Kê (FR8.2)
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+database ApplicationDBContext
+
+group "Xem Biểu Đồ Đăng Ký Người Dùng"
+    Admin -> AdminController: GET /api/admin/statistics/users-per-month
+    activate AdminController
+
+    AdminController -> IAdminService: GetUserRegistrationsPerMonthAsync()
+    activate IAdminService
+
+    AdminService -> ApplicationDBContext: Query Users, Group by Year/Month, Count()
+    activate ApplicationDBContext
+    ApplicationDBContext --> AdminService: userRegistrationData
+    deactivate ApplicationDBContext
+
+    AdminService --> IAdminService: ServiceResult.Success(data)
+    deactivate IAdminService
+
+    AdminController --> Admin: 200 OK (Chart Data)
+    deactivate AdminController
+end
+
+group "Xem Biểu Đồ Tạo Mới Đồ Vật"
+    Admin -> AdminController: GET /api/admin/statistics/items-per-month
+    activate AdminController
+
+    AdminController -> IAdminService: GetItemCreationsPerMonthAsync()
+    activate IAdminService
+
+    AdminService -> ApplicationDBContext: Query Items, Group by Year/Month, Count()
+    activate ApplicationDBContext
+    ApplicationDBContext --> AdminService: itemCreationData
+    deactivate ApplicationDBContext
+
+    AdminService --> IAdminService: ServiceResult.Success(data)
+    deactivate IAdminService
+
+    AdminController --> Admin: 200 OK (Chart Data)
+    deactivate AdminController
+end
+
+@enduml

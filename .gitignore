@@ -5,7 +5,11 @@
 **/.env
 **/appsettings.json
 
+<<<<<<< HEAD
 **/bin/*
+=======
+**/*.lock
+>>>>>>> origin/Duy-refactor
 
 # Ignore Cho từng phần cụ thể
 HomeTrack.Api/bin/

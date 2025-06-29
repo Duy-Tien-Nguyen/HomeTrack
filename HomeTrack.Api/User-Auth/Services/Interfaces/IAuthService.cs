@@ -7,7 +7,7 @@ namespace HomeTrack.Application.Interface
     public Task<LoginResponseDto> LoginAsync(LoginRequest loginRequest);
     public Task<bool> LogoutAsync(int userId);
     public Task<AccessTokenString> GetAccessToken(string userId, string email, string role);
-    public Task<bool> ResetPassword(int userId, string newPassword);
+    public Task<bool> ResetPassword(int userId, string oldPassword, string newPassword);
     public Task<bool> ForgotPassword(string token, string email, string newPassword);
     public Task<UserDto> GetProfile(int userId);
   }

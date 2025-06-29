@@ -1,0 +1,137 @@
+@startuml ViewUserStatusFlow
+
+title Xem Trạng Thái Người Dùng (Admin)
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+participant IUserRepository
+database ApplicationDBContext
+
+Admin -> AdminController: GET /api/admin/user/{userId}
+activate AdminController
+
+AdminController -> IAdminService: ViewUserDetail(userId)
+activate IAdminService
+
+AdminService -> IUserRepository: GetByIdAsync(userId)
+activate IUserRepository
+IUserRepository --> AdminService: user
+deactivate IUserRepository
+
+alt user != null
+    AdminService -> AdminService: Tạo UserDto (bao gồm trạng thái)
+    AdminService --> IAdminService: userDto
+    deactivate IAdminService
+    AdminController --> Admin: 200 OK (UserDto)
+    deactivate AdminController
+else user == null
+    AdminService --> IAdminService: null
+    deactivate IAdminService
+    AdminController --> Admin: 404 Not Found
+    deactivate AdminController
+end
+
+@enduml
+
+@startuml UpgradeDowngradeUserFlow
+
+title Nâng Cấp / Hạ Cấp Người Dùng (Admin)
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+participant IUserRepository
+database ApplicationDBContext
+
+Admin -> AdminController: POST /api/admin/user/upgrade/{userId} hoặc /downgrade/{userId}
+activate AdminController
+
+alt Nâng cấp người dùng
+    AdminController -> IAdminService: UpgradeDowngrade(userId, PackageType.Premium)
+else Hạ cấp người dùng
+    AdminController -> IAdminService: UpgradeDowngrade(userId, PackageType.Basic)
+end
+activate IAdminService
+
+AdminService -> IUserRepository: GetByIdAsync(userId)
+activate IUserRepository
+IUserRepository --> AdminService: user
+deactivate IUserRepository
+
+alt user != null và thành công
+    alt Nâng cấp
+        AdminService -> AdminService: user.Role = Role.Premium
+    else Hạ cấp
+        AdminService -> AdminService: user.Role = Role.Basic
+    end
+    AdminService -> IUserRepository: SaveChangesAsync()
+    activate IUserRepository
+    IUserRepository --> AdminService: success
+    deactivate IUserRepository
+
+    AdminService --> IAdminService: true
+    deactivate IAdminService
+    AdminController --> Admin: 200 OK
+    deactivate AdminController
+else user == null hoặc thất bại
+    AdminService --> IAdminService: false
+    deactivate IAdminService
+    AdminController --> Admin: 400 Bad Request
+    deactivate AdminController
+end
+
+@enduml
+
+
+@startuml BanUnlockUserFlow
+
+title Ban / Mở Khóa Người Dùng (Admin)
+
+actor Admin
+participant AdminController
+participant IAdminService
+participant AdminService
+participant IUserRepository
+database ApplicationDBContext
+
+Admin -> AdminController: POST /api/admin/user/ban/{userId} hoặc /unlock/{userId}
+activate AdminController
+
+alt Ban người dùng
+    AdminController -> IAdminService: BanUnlock(userId, UserStatus.Banned)
+else Mở khóa người dùng
+    AdminController -> IAdminService: BanUnlock(userId, UserStatus.Active)
+end
+activate IAdminService
+
+AdminService -> IUserRepository: GetByIdAsync(userId)
+activate IUserRepository
+IUserRepository --> AdminService: user
+deactivate IUserRepository
+
+alt user != null và thành công
+    alt Ban
+        AdminService -> AdminService: user.Status = UserStatus.Banned
+    else Mở khóa
+        AdminService -> AdminService: user.Status = UserStatus.Active
+    end
+    AdminService -> IUserRepository: SaveChangesAsync()
+    activate IUserRepository
+    IUserRepository --> AdminService: success
+    deactivate IUserRepository
+
+    AdminService --> IAdminService: true
+    deactivate IAdminService
+    AdminController --> Admin: 200 OK
+    deactivate AdminController
+else user == null hoặc thất bại
+    AdminService --> IAdminService: false
+    deactivate IAdminService
+    AdminController --> Admin: 400 Bad Request
+    deactivate AdminController
+end
+
+@enduml

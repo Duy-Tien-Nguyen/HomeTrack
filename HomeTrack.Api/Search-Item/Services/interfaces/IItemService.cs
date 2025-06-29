@@ -23,5 +23,7 @@ public interface IItemService
     Task<ServiceResult<bool>> DeleteItemAsync(int itemId, int userId);
 
     Task<ServiceResult<IEnumerable<ItemViewModel>>> GetItemsByLocationAsync(int locationId, int userId);
+
+    Task<ServiceResult<IEnumerable<ItemViewModel>>> GetAllItemsAsync(int userId);
 }
 }

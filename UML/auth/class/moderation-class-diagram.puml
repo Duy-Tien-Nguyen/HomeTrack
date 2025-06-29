@@ -1,0 +1,120 @@
+@startuml ModerationClassDiagram
+
+title Sơ Đồ Lớp Chức Năng Kiểm Duyệt Nội Dung (FR7.1, FR7.2)
+
+package "Presentation Layer" {
+    class ModerationController {
+        - IModerationRepository _moderationRepository
+        + GetPendingItems(PagedQueryParameters): Task<IActionResult>
+        + GetItemForModeration(itemId): Task<IActionResult>
+        + ModerateItem(itemId, ModerateItemRequestDto): Task<IActionResult>
+    }
+}
+
+package "Application Layer (Interfaces)" {
+    interface IModerationRepository {
+        + GetPendingItemsAsync(PagedQueryParameters): Task<PagedResultDto<PendingItemDto>>
+        + GetItemByIdForModerationAsync(itemId): Task<Item>
+        + UpdateItemAsync(Item): Task<bool>
+    }
+
+    interface IGoogleAIStudioModerationService {
+        + ModerateItemContentAsync(Item, IEnumerable<Tag>): Task<AIStudioModerationResult>
+    }
+}
+
+package "Application Layer (DTOs)" {
+    class "PagedResultDto<T>" as PagedResultDto {
+        + Items: List<T>
+        + TotalCount: int
+        + PageNumber: int
+        + PageSize: int
+    }
+
+    class PendingItemDto {
+        + Id: int
+        + Name: string
+        + ImageUrl: string
+        + UserEmail: string
+        + ItemModerationNoteFromAI: string
+        + AssociatedTags: List<ItemTagViewModel>
+    }
+
+    class ItemTagViewModel {
+        + TagId: int
+        + TagName: string
+        + TagModerationStatus: TagModerationStatus
+    }
+
+    class ModerateItemRequestDto {
+        + NewStatus: ModerationStatus
+        + ModerationNotes: string
+    }
+}
+
+package "Domain Layer" {
+    class Item {
+        + Id: int
+        + Name: string
+        + ImageUrl: string
+        + ImageModerationStatus: ModerationStatus
+        + ModerationNote: string
+        + ModeratedAt: DateTime?
+        + ModerationByUserId: int?
+    }
+
+    class Tag {
+        + Id: int
+        + Name: string
+        + ModerationStatus: TagModerationStatus
+    }
+
+    class User {
+        + Id: int
+        + Email: string
+        + Role: Role
+    }
+
+    enum ModerationStatus { 
+        Pending
+        Approved
+        Reject
+    }
+
+    enum TagModerationStatus { 
+        Pending
+        Approve\d
+        Rejected
+    }
+
+    enum Role { 
+        Admin
+        Premium
+        Basic 
+    }
+}
+
+package "Infrastructure Layer" {
+    class ModerationRepository {
+        - ApplicationDBContext _context
+        + GetPendingItemsAsync(PagedQueryParameters): Task<PagedResultDto<PendingItemDto>>
+        + GetItemByIdForModerationAsync(itemId): Task<Item>
+        + UpdateItemAsync(Item): Task<bool>
+    }
+}
+
+' Relationships
+ModerationController ..> IModerationRepository : uses
+ModerationRepository ..|> IModerationRepository : implements
+ModerationRepository ..> ApplicationDBContext: uses
+
+ModerationController ..> PendingItemDto : uses
+ModerationController ..> ModerateItemRequestDto : uses
+
+ModerationRepository ..> Item : queries & updates
+ModerationRepository ..> Tag : queries & updates
+ModerationRepository ..> User : queries
+
+Item "1" -- "0..1" User : moderated by
+
+@enduml

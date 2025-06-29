@@ -1,0 +1,116 @@
+@startuml AdminFeaturesClassDiagram
+
+title Sơ Đồ Lớp Các Chức Năng Quản Trị
+
+package "Presentation Layer" {
+    class AdminController {
+        - IAdminService _adminService
+        - ISystemSettingRepository _systemSettingRepository
+        + GetAllUsers(): Task<IActionResult>
+        + ViewUserDetail(userId): Task<IActionResult>
+        + UpgradeUser(userId): Task<IActionResult>
+        + DowngradeUser(userId): Task<IActionResult>
+        + BanUser(userId): Task<IActionResult>
+        + UnlockUser(userId): Task<IActionResult>
+        + ChangeBasicPackageLimit(newLimit): Task<IActionResult>
+        + ChangePremiumPackageLimit(newLimit): Task<IActionResult>
+    }
+}
+
+package "Application Layer" {
+    interface IAdminService {
+        + GetAllUser(): Task<List<UserDto>?>
+        + ViewUserDetail(userId): Task<UserDto>
+        + UpgradeDowngrade(userId, packageType): Task<bool>
+        + BanUnlock(userId, userStatus): Task<bool>
+        + ChangeItemLimit(packageType, newLimit): Task<bool>
+    }
+
+    class AdminService {
+        - ISystemSettingService _settingService
+        - IUserRepository _userRepository
+        - ApplicationDBContext _context
+        - ILogger<AdminService> _logger
+        + GetAllUser(): Task<List<UserDto>?>
+        + ViewUserDetail(userId): Task<UserDto>
+        + UpgradeDowngrade(userId, packageType): Task<bool>
+        + BanUnlock(userId, userStatus): Task<bool>
+        + ChangeItemLimit(packageType, newLimit): Task<bool>
+    }
+
+    interface ISystemSettingService {
+        + GetByKeyAsync(key): Task<SystemSetting>
+    }
+
+    class SystemSettingService {
+        - ISystemSettingRepository _systemSettingRepo
+        + GetByKeyAsync(key): Task<SystemSetting>
+    }
+}
+
+package "Domain Layer" {
+    class User {
+        + Id: int
+        + Email: string
+        + Role: Role
+        + Status: UserStatus
+        ' ... other properties'
+    }
+
+    class SystemSetting {
+        + Id: int
+        + SettingKey: string
+        + SettingValue: int
+    }
+
+    enum Role { 
+        Basic
+        Premium
+        Admin 
+    }
+    enum UserStatus {
+        Active
+        Banned
+        Pending 
+    }
+    enum PackageType {
+        Basic
+        Premium
+    }
+}
+
+package "Infrastructure Layer" {
+    interface IUserRepository {
+        + GetByIdAsync(id): Task<User>
+        + GetAllAsync(): Task<IEnumerable<User>>
+        + SaveChangesAsync(): Task
+    }
+
+    interface ISystemSettingRepository {
+        + GetByKeyAsync(key): Task<SystemSetting>
+        + GetAllAsync(): Task<IEnumerable<SystemSetting>>
+    }
+
+    class ApplicationDBContext {
+        + Users: DbSet<User>
+        + SystemSettings: DbSet<SystemSetting>
+    }
+}
+
+' Relationships'
+AdminController ..> IAdminService : uses
+AdminController ..> ISystemSettingRepository : uses
+
+AdminService ..|> IAdminService : implements
+AdminService ..> ISystemSettingService : uses
+AdminService ..> IUserRepository : uses
+AdminService ..> ApplicationDBContext : uses
+AdminService ..> ILogger : uses
+
+SystemSettingService ..|> ISystemSettingService : implements
+SystemSettingService ..> ISystemSettingRepository : uses
+
+AdminService ..> User : manipulates
+AdminService ..> SystemSetting : manipulates
+
+@enduml

@@ -1,3 +1,5 @@
+using HomeTrack.Domain.Enum;
+
 namespace HomeTrack.Api.Request
 {
     public class ItemViewModel
@@ -10,5 +12,7 @@ namespace HomeTrack.Api.Request
         public List<string>? Tags { get; set; }
         public required DateTime CreatedAt { get; set; }
         public string? Color { get; set; }
+        public ModerationStatus? ModerationStatus { get; set; }
+        public string? ModerationNote { get; set; }
     }
 }

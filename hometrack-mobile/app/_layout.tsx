@@ -1,29 +1,26 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import React from "react";
+import { Stack } from "expo-router";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
+export default function Layout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="Auth/login" />
+      <Stack.Screen name="Auth/register" />
+      <Stack.Screen name="Auth/ForgotPassword" />
+      <Stack.Screen name="Auth/resetPassword" />
+      <Stack.Screen name="dashboard/dashboard" />
+      <Stack.Screen name="searchScreen" />
+      <Stack.Screen name="dashboard/addItem" />
+      <Stack.Screen name="LocationManager" />
+      <Stack.Screen name="product/productDetail" />
+      <Stack.Screen name="profile/profile" />
+      <Stack.Screen name="upgrade/upgradePackage" />
+      <Stack.Screen name="Auth/VerifyOtpScreen" />
+    </Stack>
   );
 }

@@ -122,6 +122,9 @@ namespace HomeTrack.Api.Data.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("description");
 
+                    b.Property<int>("ImageModerationStatus")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)")
@@ -130,6 +133,15 @@ namespace HomeTrack.Api.Data.Migrations
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer")
                         .HasColumnName("location_id");
+
+                    b.Property<DateTime?>("ModeratedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ModerationByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ModerationNote")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -148,6 +160,8 @@ namespace HomeTrack.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("ModerationByUserId");
 
                     b.HasIndex("UserId");
 
@@ -371,6 +385,9 @@ namespace HomeTrack.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("ModerationStatus")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -519,6 +536,10 @@ namespace HomeTrack.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_items_location_id");
 
+                    b.HasOne("HomeTrack.Domain.User", "ModerationByUser")
+                        .WithMany()
+                        .HasForeignKey("ModerationByUserId");
+
                     b.HasOne("HomeTrack.Domain.User", "User")
                         .WithMany("Items")
                         .HasForeignKey("UserId")
@@ -527,6 +548,8 @@ namespace HomeTrack.Api.Data.Migrations
                         .HasConstraintName("fk_items_user_id");
 
                     b.Navigation("Location");
+
+                    b.Navigation("ModerationByUser");
 
                     b.Navigation("User");
                 });

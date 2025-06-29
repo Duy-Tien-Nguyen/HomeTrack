@@ -1,0 +1,180 @@
+@startuml
+' Title for the diagram
+title HomeTrack - Entity Relationship Diagram
+
+' General settings for better appearance
+skinparam linetype ortho
+skinparam handwritten false
+skinparam classAttributeIconSize 0
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI, Arial"
+skinparam defaultFontSize 12
+skinparam entity {
+  BackgroundColor LightBlue
+  BorderColor #2688d4
+}
+
+' Define a note for keys
+note "PK: Primary Key\nFK: Foreign Key" as KeysNote
+
+' ===================================
+'           ENTITIES
+' ===================================
+
+entity User {
+  + Id : int <<PK>>
+  --
+  + Email : string {unique}
+  + PasswordHash : string
+  + FirstName : string
+  + LastName : string
+  + Role : RoleEnum
+  + CreatedAt : DateTime
+  + UpdatedAt : DateTime
+}
+
+entity Location {
+  + Id : int <<PK>>
+  --
+  + Name : string
+  + Description : string
+  + UserId : int <<FK>>
+  + ParentLocationId : int <<FK>> {nullable}
+  + CreatedAt : DateTime
+  + UpdatedAt : DateTime
+}
+
+entity Item {
+  + Id : int <<PK>>
+  --
+  + Name : string
+  + Description : string
+  + ImageUrl : string {nullable}
+  + Color : string
+  + ImageModerationStatus : ModerationStatusEnum
+  + ModerationNote : string {nullable}
+  + ModeratedAt : DateTime {nullable}
+  + DeletedAt : DateTime {nullable}
+  + UserId : int <<FK>>
+  + LocationId : int <<FK>> {nullable}
+  + CreatedAt : DateTime
+  + UpdatedAt : DateTime
+}
+
+entity Tag {
+  + Id : int <<PK>>
+  --
+  + Name : string {unique per user}
+  + ModerationStatus : TagModerationStatusEnum
+  + UserId : int <<FK>>
+  + CreatedAt : DateTime
+}
+
+' Junction/Join Table for Many-to-Many
+entity ItemTag {
+  + ItemId : int <<PK, FK>>
+  + TagId : int <<PK, FK>>
+}
+
+entity StatsReport {
+  + Id : int <<PK>>
+  --
+  + ActionType : ActionTypeEnum
+  + Timestamp : DateTime
+  + UserId : int <<FK>>
+  + ItemId : int <<FK>>
+}
+
+entity Package {
+  + Id : int <<PK>>
+  --
+  + Name : string
+  + Description : string
+  + Price : decimal
+  + DurationDays : int
+  + IsActive : bool
+}
+
+entity Subscription {
+  + Id : int <<PK>>
+  --
+  + StartDate : DateTime
+  + EndDate : DateTime
+  + Status : string
+  + UserId : int <<FK>>
+  + PackageId : int <<FK>>
+}
+
+' Inferred entity for OTP, not directly linked via FK but by email
+entity Otp {
+  + Id : int <<PK>>
+  --
+  + Email : string {indexed}
+  + Token : string
+  + ExpiryDate : DateTime
+  + IsUsed : bool
+}
+
+' ===================================
+'              ENUMS
+' ===================================
+
+enum RoleEnum {
+  Basic
+  Premium
+  Admin
+}
+
+enum ModerationStatusEnum {
+  Pending
+  Approved
+  Rejected
+}
+
+enum TagModerationStatusEnum {
+  Pending
+  Approved
+  Rejected
+}
+
+enum ActionTypeEnum {
+  Created
+  Edited
+  Moved
+  Deleted
+}
+
+' ===================================
+'          RELATIONSHIPS
+' ===================================
+
+' --- Core Relationships ---
+User "1" -- "0..*" Location : owns
+User "1" -- "0..*" Item : owns
+User "1" -- "0..*" Tag : creates
+Location "0..1" -- "0..*" Item : contains
+Location "1" -- "0..*" Location : (parent-child)
+
+' --- Many-to-Many: Item <-> Tag ---
+Item "1" -- "1..*" ItemTag
+Tag "1" -- "1..*" ItemTag
+
+' --- Subscription Relationships ---
+User "1" -- "0..*" Subscription : has
+Package "1" -- "0..*" Subscription : is for
+
+' --- Reporting/Stats Relationship ---
+User "1" -- "0..*" StatsReport : performs action
+Item "1" -- "0..*" StatsReport : is subject of
+
+' --- Enum Relationships ---
+User ..> RoleEnum
+Item ..> ModerationStatusEnum
+Tag ..> TagModerationStatusEnum
+StatsReport ..> ActionTypeEnum
+
+' --- Logical Relationship (not a DB foreign key) ---
+User "1" .. "0..1" Otp : (uses for verification via email)
+
+@enduml

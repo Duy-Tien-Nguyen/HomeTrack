@@ -68,6 +68,7 @@ namespace HomeTrack.Application.Services
         LastName = user.LastName,
         Role = user.Role.ToString(),
         Email = user.Email,
+        Status = user.Status.ToString(),
       }).ToList();
     }
 

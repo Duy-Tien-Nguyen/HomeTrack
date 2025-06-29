@@ -18,15 +18,15 @@ services:
     restart: unless-stopped
 
   hometrack-api:
-    build: 
-      context: ./HomeTrack.Api
-      dockerfile: dockerfile
-      
-    image: hometrack-api-service
+    build:
+      context: .
+      dockerfile: HomeTrack.Api/Dockerfile  # Đường dẫn đến Dockerfile
     ports:
       - "8001:8001"
-    container_name: hometrack_api_container
-    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - postgres_db
     volumes:
       - hometrack_uploads:/app/wwwroot/uploads
     networks:

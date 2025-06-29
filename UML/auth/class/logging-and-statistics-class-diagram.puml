@@ -1,6 +1,6 @@
 @startuml LoggingAndStatisticsClassDiagram
 
-title Sơ Đồ Lớp Chức Năng Xem Logs & Thống Kê (FR8.1, FR8.2)
+title Sơ Đồ Lớp Chức Năng Giám sát & Báo cáo (FR8.1, FR8.2)
 
 package "Presentation Layer" {
     class AdminController {

@@ -7,5 +7,6 @@ namespace HomeTrack.Application.Interface
     Task<IEnumerable<MonthlyCountDto>> GetUserRegistrationsByMonthAsync(int year);
     Task<IEnumerable<MonthlyCountDto>> GetNewItemsByMonthAsync(int year);
     Task<DashboardSummaryDto> GetDashboardSummaryAsync();
+    Task<IEnumerable<UserCountByRoleDto>> GetUserCountByRoleAsync();
   }
 }

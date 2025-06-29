@@ -38,6 +38,10 @@ namespace HomeTrack.Application.AcprojSupport
             builder.Services.Configure<JwtSetting>(builder.Configuration.GetSection("Jwt"));
             var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtSetting>();
 
+            var jwtSection = builder.Configuration.GetSection("Jwt");
+            Console.WriteLine("DEBUG - JwtSection Raw: " + jwtSection.Value);
+            Console.WriteLine("DEBUG - SecretKey: " + jwtSection["SecretKey"]);
+
             builder.Services.Configure<EmailService>(builder.Configuration.GetSection("OtpSettings"));
 
             if (string.IsNullOrEmpty(jwtConfig?.SecretKey))
@@ -45,7 +49,7 @@ namespace HomeTrack.Application.AcprojSupport
                 Console.WriteLine("FATAL ERROR in Validation.cs: JWT SecretKey is NULL or EMPTY from configuration.");
                 throw new InvalidOperationException("JWT SecretKey is missing in configuration.");
             }
-            Console.WriteLine($"DEBUG in Validation.cs - SecretKey from jwtConfig: '{jwtConfig.SecretKey}'"); 
+            Console.WriteLine($"DEBUG in Validation.cs - SecretKey from jwtConfig: '{jwtConfig.SecretKey}'");
 
             // 3. JwtService Singleton
             builder.Services.AddSingleton<JwtService>();
@@ -60,7 +64,7 @@ namespace HomeTrack.Application.AcprojSupport
             {
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
-                Console.WriteLine($"DEBUG in AddJwtBearer - Using SecretKey: '{jwtConfig.SecretKey}' for IssuerSigningKey"); 
+                Console.WriteLine($"DEBUG in AddJwtBearer - Using SecretKey: '{jwtConfig.SecretKey}' for IssuerSigningKey");
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -73,7 +77,7 @@ namespace HomeTrack.Application.AcprojSupport
                         Encoding.UTF8.GetBytes(jwtConfig.SecretKey)
                     ),
                     ClockSkew = TimeSpan.Zero, // bỏ thời gian trễ mặc định 5 phút
-                    RoleClaimType= ClaimTypes.Role
+                    RoleClaimType = ClaimTypes.Role
                 };
             });
         }

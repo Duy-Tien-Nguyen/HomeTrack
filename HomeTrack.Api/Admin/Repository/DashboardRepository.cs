@@ -55,5 +55,17 @@ namespace HomeTrack.Infrastructure.Repositories
         TotalItems = totalItems
       };
     }
+
+    public async Task<IEnumerable<UserCountByRoleDto>> GetUserCountByRoleAsync()
+    {
+      return await _context.Users
+          .GroupBy(u => u.Role) // Nhóm tất cả người dùng theo Role
+          .Select(g => new UserCountByRoleDto
+          {
+            Role = g.Key, // g.Key chính là giá trị Role đã được nhóm
+            Count = g.Count() // Đếm số lượng người dùng trong mỗi nhóm
+          })
+          .ToListAsync();
+    }
   }
 }

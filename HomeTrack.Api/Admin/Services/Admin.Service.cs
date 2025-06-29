@@ -12,6 +12,7 @@ namespace HomeTrack.Application.Services
     private readonly ISystemSettingService _settingService;
     private readonly ILogger<AdminService> _logger;
     private readonly IUserRepository _userRepository;
+    private readonly IDashboardRepository _dashboardRepository;
     private readonly ApplicationDBContext _context;
     private static readonly Dictionary<PackageType, string> PackageTypeLimits = new()
     {
@@ -24,10 +25,11 @@ namespace HomeTrack.Application.Services
       { PackageType.Basic, Role.Basic },
       { PackageType.Premium, Role.Premium }
     };
-    public AdminService(ISystemSettingService settingService, ILogger<AdminService> logger, IUserRepository userRepository,
+    public AdminService(ISystemSettingService settingService, ILogger<AdminService> logger, IUserRepository userRepository,IDashboardRepository dashboardRepository,
       ApplicationDBContext context)
     {
       _context = context;
+      _dashboardRepository = dashboardRepository;
       _userRepository = userRepository;
       _settingService = settingService;
       _logger = logger;
@@ -255,5 +257,22 @@ namespace HomeTrack.Application.Services
       }
     }
 
+    public async Task<ServiceResult<IEnumerable<UserCountByRoleDto>>> GetUserCountByRoleAsync()
+    {
+      try
+      {
+        var data = await _dashboardRepository.GetUserCountByRoleAsync();
+        if (data == null || !data.Any())
+        {
+          return ServiceResult<IEnumerable<UserCountByRoleDto>>.Success(new List<UserCountByRoleDto>());
+        }
+        return ServiceResult<IEnumerable<UserCountByRoleDto>>.Success(data);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error occurred while getting user count by role.");
+        return ServiceResult<IEnumerable<UserCountByRoleDto>>.Failure("Đã có lỗi xảy ra khi lấy thống kê người dùng theo vai trò.");
+      }
+    }
   }
 }

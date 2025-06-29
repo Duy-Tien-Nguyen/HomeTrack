@@ -14,5 +14,6 @@ namespace HomeTrack.Application.Interface
     Task<ServiceResult<IEnumerable<StatsReport>>> GetSystemLogsAsync(int? userId, string? actionType, DateTime? startTime, DateTime? endTime);
     Task<ServiceResult<IEnumerable<object>>> GetUserRegistrationsPerMonthAsync();
     Task<ServiceResult<IEnumerable<object>>> GetItemCreationsPerMonthAsync();
+    Task<ServiceResult<IEnumerable<UserCountByRoleDto>>> GetUserCountByRoleAsync();
   }
 }

@@ -24,13 +24,13 @@ namespace HomeTrack.Api.Controllers
       _userRepository = userRepository;
     }
 
-    [HttpGet("byid")]
+    [HttpGet("{id}")]
     [Authorize]
-    public async Task<IActionResult> GetSubscriptionById([FromBody] GetSubscriptionByIdReq req)
+    public async Task<IActionResult> GetSubscriptionById(int id)
     {
       try
       {
-        var subscription = await _subscriptionService.GetByIdAsync(req.subcriptionId);
+        var subscription = await _subscriptionService.GetByIdAsync(id);
         if (subscription == null)
           return NotFound("Không tìm thấy gói đăng ký");
         return Ok(subscription);
